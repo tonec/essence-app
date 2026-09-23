@@ -10,7 +10,7 @@
 
 **Star-Builder** is a persistent, multiplayer web application that bridges the gap between sentimental online star registration, digital real-estate advertising, and creative retro sandbox gaming (such as _Terraria_ or _Starbound_).
 
-Users explore an infinite, stylized 2D canvas map representing a shared galaxy field. On this map, users can purchase, name, and dedicate vacant star coordinates. Upon claiming a star, the user receives an associated $32 \times 32$ pixel construction plot anchored directly to their celestial location. Using an integrated 2D pixel-art builder engine, owners can construct custom pixel structures, sci-fi habitats, neon billboards, monuments, or creative art pieces that are permanently rendered onto the public universe map for all visitors to discover.
+Users explore an infinite, stylized 3D canvas star map representing a shared galaxy field. On this map, users can purchase, name, and dedicate vacant star coordinates. Upon claiming a star, the user receives an associated $32 \times 32$ pixel construction plot anchored directly to their celestial location. Using an integrated 2D pixel-art builder engine, owners can construct custom pixel structures, sci-fi habitats, neon billboards, monuments, or creative art pieces that are permanently rendered onto the public universe map for all visitors to discover.
 
 ---
 
@@ -63,12 +63,11 @@ The application utilizes a **Tiered Location & Feature Pricing Model** based on 
 
 ### 4.1 Coordinate Pricing Tiers
 
-| Tier Name                        | Price (One-Time) | Coordinate Criteria                              | Features & Entitlements                                                                                                                                       |
-| :------------------------------- | :--------------- | :----------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------- | --- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Standard Outer Rim**           | **$4.99 USD**    | $                                                | X                                                                                                                                                             | > 100$ or $    | Y   | > 100$<br>_(Outer sector grid)_      | • Standard $32 \times 32$ Construction Plot<br>• Basic Tile Palette (16 standard terrain/metal tiles)<br>• 280-character dedication message                 |
-| **Constellation / System**       | **$14.99 USD**   | Named star clusters & major constellation points | • Standard $32 \times 32$ Construction Plot<br>• Extended Palette (Animated neon, bioluminescent flora)<br>• Star glow tint selector & custom particle effect |
-| **Core Center / Prime**          | **$49.99 USD**   | $                                                | X                                                                                                                                                             | \le 100$ and $ | Y   | \le 100$<br>_(Central galactic hub)_ | • Standard $32 \times 32$ Construction Plot<br>• VIP Tile Palette (Gold, Holographic, Obsidian tiles)<br>• External link / social handle embed on info card |
-| **Mega-Plot Expansion (Upsell)** | **+$9.99 USD**   | Add-on to any existing star transaction          | • Expands grid bounds from $32 \times 32$ to $64 \times 64$ tiles                                                                                             |
+| Tier Name | Price (One-Time) | Coordinate Criteria | Features & Entitlements
+| **Standard Outer Rim** | **$4.99 USD** | Outer sector grid | Standard $32 \times 32$ Construction Plot. Basic Tile Palette (16 standard terrain/metal tiles). 280-character dedication message |
+| **Constellation / System** | **$14.99 USD** | Outer sector grid | Standard $32 \times 32$ Construction Plot. Extended Palette (Animated neon, bioluminescent flora). Star glow tint selector & custom particle effect |
+| **Core Center / Prime** | **$49.99 USD** | Central galactic hub | Standard $32 \times 32$ Construction Plot. VIP Tile Palette (Gold, Holographic, Obsidian tiles). External link / social handle embed on info card |
+| **Mega-Plot Expansion (Upsell)** | **+$9.99 USD** | Add-on to any existing star transaction | Expands grid bounds from $32 \times 32$ to $64 \times 64$ tiles |
 
 ### 4.2 Stripe Checkout & Plot Reservation Workflow
 
@@ -89,7 +88,7 @@ To prevent race conditions where multiple users attempt to buy the same coordina
             │
             ▼
 [ Create Stripe Checkout Session ]
-  ├─ Metadata: star_name, coord_x, coord_y, user_id, tier
+  ├─ Metadata: star_name, coord_x, coord_y, coord_z, user_id, tier
   └─ Amount based on coordinate distance
             │
             ▼
@@ -110,23 +109,23 @@ To prevent race conditions where multiple users attempt to buy the same coordina
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                         FRONTEND CLIENT                         │
-│   Next.js / React (TypeScript)  │  PixiJS / HTML5 Canvas API   │
-│   • Galaxy Map Renderer         │  • 32x32 Tile Builder Engine │
-│   • WebGL Tile Layering         │  • Tailwind CSS UI Controls  │
+│   Next.js / React (TypeScript)  │  Three.js / HTML5 Canvas API  │
+│   • Galaxy Map Renderer         │  • 32x32 Tile Builder Engine  │
+│   • WebGL Tile Layering         │  • Tailwind CSS UI Controls   │
 └────────────────────────────────┬────────────────────────────────┘
                                  │ REST / WebSockets
                                  ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                        BACKEND SERVICES                         │
-│   Node.js (Fastify/Express)            │
-│   • Auth (Clerk / Auth0)       │ • Tile Matrix Serializer      │
-│   • Stripe Webhook Handler     │ • Quadtree Map Engine         │
+│   Node.js (Fastify/Express)                                     │
+│   • Auth (Clerk / Auth0)       │ • Tile Matrix Serializer       │
+│   • Stripe Webhook Handler     │ • Quadtree Map Engine          │
 └────────────────┬───────────────────────────────┬────────────────┘
                  │                               │
                  ▼                               ▼
 ┌───────────────────────────────┐ ┌───────────────────────────────┐
 │      DATABASE & STORAGE       │ │        CACHE & RENDERS        │
-│ Supabase (PostGIS / Data)   │ │ Cloudflare R2        │
+│ Supabase (PostGIS / Data)     │ │ Cloudflare R2                 │
 │ • Users, Stars, Tile Matrices │ │ • Static Map Tile Snapshots   │
 │ Redis                         │ │ • Dynamic CDN Caching         │
 │ • Plot Locks & Sessions       │ │                               │
@@ -136,7 +135,7 @@ To prevent race conditions where multiple users attempt to buy the same coordina
 ### Stack Breakdown
 
 - **Frontend Framework:** Next.js (React), TypeScript, Tailwind CSS.
-- **Canvas / Rendering Engine:** PixiJS for fast multi-layered tile sprite rendering.
+- **Canvas / Rendering Engine:** Three for the star map rendering engine.
 - **Backend Runtime:** Node.js (TypeScript).
 - **Payment Gateway:** Stripe Checkout API & Webhook Service.
 - **Database Layer:** Supabase (for relational metadata and spatial indices) + Redis (for instant plot reservation locking).
@@ -148,11 +147,51 @@ To prevent race conditions where multiple users attempt to buy the same coordina
 
 ### 6.1 Galaxy Canvas Map
 
-- **Pan & Zoom:** Smooth smooth-scrolling infinite 2D canvas with level-of-detail (LOD) rendering.
+- **Pan & Zoom:** Smooth scrolling infinite 3D canvas with level-of-detail (LOD) rendering.
 - **Grid View Modes:**
   - _High Zoom:_ Shows individual pixel structures, animated blocks, and star glow.
   - _Low Zoom:_ Merges structures into glowing constellation nodes for performance optimization.
-- **Coordinate Overlay:** Real-time HUD showing current cursor coordinates $(X, Y)$ and sector classification.
+- **Star Point Data:** The star data is currently in the following files:
+  - _src/lib/galaxy/bsc5p_3d.json_ star coordinates
+  - _src/lib/galaxy/bsc5p_name.json_ additional names
+  - _src/lib/galaxy/bsc5p_spectral_extra.json_ addition spectral information including color
+
+#### 6.2 Star Point Data - JSON keys and additional information
+
+Because this catalog primarily targets video games, things are keep small for faster loading and efficient usage of bandwidth. JSON keys are usually a single character (2 characters for `to` / `or` field in the `spectral_extra` file). This often reduces each file by over 50% which, due to the massive amount of star data, equates to megabytes for some files.
+
+The table below describes what each of these keys mean, and lists the files that use them.
+
+| Key | Type | Symbol | Used by | Description  
+| `i` | number, string | -- | `bsc5p_radec` `bsc5p_3d` `bsc5p_names` `bsc5p_spectral_extra` | Original BSC5P line ID, or 'Custom [n]' if added via the amendments mechanism. Used to link stars between files. |
+| `n` | string | -- | `bsc5p_radec` `bsc5p_3d` | A single name given to star. Additional known names for each star stored in [bsc5p_names.json](catalogs/bsc5p_names.json). |
+| `p` | number | `pc` | `bsc5p_radec` `bsc5p_3d` | Distance in parsecs, ignoring uncertainty. 1 parsec ≈ 3.26 light-years. |
+| `r` | number | `α` | `bsc5p_radec` | Right ascension in **radians**. |
+| `d` | number | `δ` | `bsc5p_radec` | Declination in **radians**. |
+| `x` | number | -- | `bsc5p_3d` | `x` coordinate approximation in parsecs. |
+| `y` | number | -- | `bsc5p_3d` | `y` coordinate approximation in parsecs. |
+| `z` | number | -- | `bsc5p_3d` | `z` coordinate approximation in parsecs. |
+| `N` | number | `L☉` | `bsc5p_radec` `bsc5p_3d` | Naively calculated luminosity. This does not take dust and other obstruction into account, and can vary several orders of magnitude from real data. This is however still very useful, because being calculated directly from perceived brightness and distance, it gives visualisation software a highly consistent base for realistic-looking 3D calculations. This value may therefore be thought of more as a custom brightness-distance unit than real luminosity. The intended use of this value is generating star size and size falloff based on distance from the software camera (see [Inverse Square Law of Brightness](http://www.astronomy.ohio-state.edu/~pogge/Ast162/Unit1/bright.html)). |
+| `K` | vector3 | `K` | `bsc5p_radec` `bsc5p_3d` | Colour of star approximated from star temperature in kelvin (AKA blackbody temperature), converted to RGB. A lot of effort and research has gone into estimating this as physically accurately as humanly possible (while keeping in mind it's still an approximation nonetheless, and will vary by star class and observational quality). |
+
+**Spectral information**
+
+Below follows extra spectral information only found in the `bsc5p_spectral_extra` file.
+
+| Key  | Type           | Symbol      | Description                                                                                                                                        |
+| ---- | -------------- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `L`  | number         | `L☉`        | Real luminosity as determined by academic sources. Very few stars in this catalog have this value defined due to the difficulty in determining it. |
+| `b`  | number         | `m`, `vMag` | Apparent brightness (also known as apparent magnitude, visual magnitude; not to be confused with absolute magnitude).                              |
+| `a`  | number         | `M`, `VMag` | Naively calculated absolute magnitude. This does not take dust and other obstruction into account.                                                 |
+| `g`  | string         | --          | Colour or glow of star, but cartoony instead of real.                                                                                              |
+| `s`  | string         | --          | Spectral classification.                                                                                                                           |
+| `C`  | string         | --          | Spectral type classification (O, B, A, F, G, K, M).                                                                                                |
+| `S`  | number         | --          | Spectral type subclass (0-9). 0=hottest, 9=coldest. Fractions exist (eg. Mu Normae is O9.7 \[that's an `O`, not a `0`]).                           |
+| `L`  | number         | --          | Luminosity class. Higher numbers generally mean lower surface temperatures.                                                                        |
+| `to` | object or null | --          | If specified, the star is in range of the above and whatever is specified here. Used to indicate uncertainty.                                      |
+| `or` | object or null | --          | If specified, the star is either the above or whatever is specified in this object. Used to indicate uncertainty.                                  |
+| `e`¹ | array          | --          | Containing siblings, if the original data was presented that way.                                                                                  |
+| `q`  | string         | --          | Skipped spectral information. These usually contain peculiarities in spectral lines, but may also contain data the parser did not understand.      |
 
 ### 6.2 2D Tile Builder Engine
 
@@ -173,7 +212,7 @@ To prevent race conditions where multiple users attempt to buy the same coordina
 ### 6.3 Social & Inspect Features
 
 - **Star Information Drawer:** Clicking an occupied star opens a slide-over modal containing:
-  - Star Name and Exact Coordinates $(X, Y)$.
+  - Star Name and Exact Coordinates $(X, Y, Z)$.
   - Dedication Message & Owner Identifier.
   - Rendered high-res pixel art thumbnail preview.
   - Action buttons: "Copy Direct Link", "Edit Plot" (if owner), "Visit External Website" (Prime Tier).
