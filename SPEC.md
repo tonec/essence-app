@@ -263,15 +263,15 @@ To prevent race conditions where multiple users attempt to buy the same coordina
 ## 9. Development Milestones & Roadmap
 
 ```
-Phase 1: Core Tile Builder Engine (Weeks 1-3)
- ├─ Build 32x32 canvas grid editor in React/PixiJS
- ├─ Implement draw, erase, eyedropper, and tile palette selector
- └─ Local state serialization testing
-
-Phase 2: Infinite Galaxy Map & Spatial Database (Weeks 4-6)
+Phase 1: Infinite Galaxy Map & Spatial Database (Weeks 4-6)
  ├─ Implement 2D pan/zoom viewport map
  ├─ Set up PostgreSQL database, spatial indexing, and backend APIs
  └─ Real-time rendering of claimed star plots on main map
+
+Phase 2: Core Tile Builder Engine (Weeks 1-3)
+ ├─ Build 32x32 canvas grid editor in React/PixiJS
+ ├─ Implement draw, erase, eyedropper, and tile palette selector
+ └─ Local state serialization testing
 
 Phase 3: Stripe Payments & Lock Engine (Weeks 7-9)
  ├─ Redis coordinate lock mechanism (5-minute expiration)
