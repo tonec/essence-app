@@ -73,7 +73,7 @@ The application utilizes a **Tiered Location & Feature Pricing Model** based on 
 
 To prevent race conditions where multiple users attempt to buy the same coordinate simultaneously:
 
-1. **Selection:** User selects an available coordinate $(X, Y)$.
+1. **Selection:** User selects an available coordinate $(X, Y, Z)$.
 2. **Temporary Lock:** Backend receives a reservation request and marks coordinate status as `RESERVED` for 300 seconds (5 minutes) in Redis / Database.
 3. **Checkout Creation:** Backend initializes a Stripe Checkout Session containing metadata: `coord_x`, `coord_y`, `star_name`, `dedication_text`, and `user_id`.
 4. **Payment Fulfillment:**
@@ -193,7 +193,7 @@ Below follows extra spectral information only found in the `bsc5p_spectral_extra
 | `e`¹ | array          | --          | Containing siblings, if the original data was presented that way.                                                                                  |
 | `q`  | string         | --          | Skipped spectral information. These usually contain peculiarities in spectral lines, but may also contain data the parser did not understand.      |
 
-### 6.2 2D Tile Builder Engine
+### 6.3 2D Tile Builder Engine
 
 - **Grid Constraints:** Fixed 32 times 32 grid cells per plot (Expandable to 64 times 64 via upgrade).
 - **Editing Suite Tools:**
@@ -209,9 +209,10 @@ Below follows extra spectral information only found in the `bsc5p_spectral_extra
   3. _Lighting / Neon:_ Glowing neon tubes, flashing alert lights, spotlights.
   4. _Special:_ Animated thrusters, energy fields, particle emitters.
 
-### 6.3 Social & Inspect Features
+### 6.4 Social & Inspect Features
 
 - **Star Information Drawer:** Clicking an occupied star opens a slide-over modal containing:
+  - A graphical ring should show around the star.
   - Star Name and Exact Coordinates $(X, Y, Z)$.
   - Dedication Message & Owner Identifier.
   - Rendered high-res pixel art thumbnail preview.
@@ -245,6 +246,7 @@ Below follows extra spectral information only found in the `bsc5p_spectral_extra
 | `user_id`                | UUID         | FOREIGN KEY -> users(id)               | Star owner reference      |
 | `coord_x`                | INTEGER      | NOT NULL                               | Grid X coordinate         |
 | `coord_y`                | INTEGER      | NOT NULL                               | Grid Y coordinate         |
+| `coord_z`                | INTEGER      | NOT NULL                               | Grid Z coordinate         |
 | `star_name`              | VARCHAR(100) | NOT NULL                               | Custom star title         |
 | `dedication_text`        | TEXT         | CHECK (char_length <= 280)             | Custom user dedication    |
 | `tier`                   | ENUM         | 'STANDARD', 'CONSTELLATION', 'PRIME'   | Pricing tier category     |
@@ -303,9 +305,10 @@ Below follows extra spectral information only found in the `bsc5p_spectral_extra
 
 ```
 Phase 1: Infinite Galaxy Map & Spatial Database (Weeks 4-6)
- ├─ Implement 2D pan/zoom viewport map
+ ├─ Implement 3D pan/zoom viewport map
  ├─ Set up PostgreSQL database, spatial indexing, and backend APIs
- └─ Real-time rendering of claimed star plots on main map
+ ├─ Real-time rendering of claimed star plots on main map
+ └─ Each star clickable, rendering a ring around the selected star and the name and $(X, Y, Z)$ should be displayed in an overlay in the bottom left.
 
 Phase 2: Core Tile Builder Engine (Weeks 1-3)
  ├─ Build 32x32 canvas grid editor in React/PixiJS
