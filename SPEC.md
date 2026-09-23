@@ -117,8 +117,8 @@ To prevent race conditions where multiple users attempt to buy the same coordina
                                  ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                        BACKEND SERVICES                         │
-│   Node.js (Fastify/Express)                                     │
-│   • Auth (Clerk / Auth0)       │ • Tile Matrix Serializer       │
+│   Next.js under app/api/*                                                   │
+│   • Better Auth                │ • Tile Matrix Serializer       │
 │   • Stripe Webhook Handler     │ • Quadtree Map Engine          │
 └────────────────┬───────────────────────────────┬────────────────┘
                  │                               │
@@ -139,7 +139,6 @@ To prevent race conditions where multiple users attempt to buy the same coordina
 - **Backend Runtime:** Node.js (TypeScript).
 - **Payment Gateway:** Stripe Checkout API & Webhook Service.
 - **Database Layer:** Supabase (for relational metadata and spatial indices) + Redis (for instant plot reservation locking).
-- **Object Storage:** Cloudflare R2 (for generated PNG thumbnails of completed 32x32 user plots).
 
 ---
 
@@ -229,14 +228,9 @@ Below follows extra spectral information only found in the `bsc5p_spectral_extra
 
 ### 7.2 Table Schemas
 
-#### `users`
+#### `user`
 
-| Field Name   | Type         | Constraints                            | Description            |
-| :----------- | :----------- | :------------------------------------- | :--------------------- |
-| `id`         | UUID         | PRIMARY KEY, DEFAULT gen_random_uuid() | Unique user identifier |
-| `email`      | VARCHAR(255) | UNIQUE, NOT NULL                       | User account email     |
-| `username`   | VARCHAR(50)  | UNIQUE, NOT NULL                       | Public display handle  |
-| `created_at` | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP              | Account creation time  |
+Refer to the Better Auth docs
 
 #### `stars`
 

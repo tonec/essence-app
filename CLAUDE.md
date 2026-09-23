@@ -14,7 +14,7 @@ Keep replies concise and focused on key information. No unnecessary fluff, no lo
 
 ```bash
 npm run dev        # next dev on http://localhost:3000
-npm run build  # next build
+npm run build      # next build
 npm run start      # next start
 npm run lint       # eslint (flat config in eslint.config.mjs)
 ```
@@ -25,7 +25,7 @@ There is no test runner configured yet.
 
 - **Next.js 16** (App Router) with **React 19**, TypeScript strict mode. Path alias `@/*` → `src/*`.
 - **Tailwind CSS v4** via `@tailwindcss/postcss` (no `tailwind.config` — v4 is CSS-first, configured in `src/app/globals.css`).
-- Planned per SPEC: PixiJS (canvas), Supabase (Postgres + PostGIS), Redis (5-minute reservation locks), Stripe Checkout + webhooks, Cloudflare R2 (thumbnails). None are installed yet — add them as features land.
+- Planned per SPEC: Three.js (canvas), Supabase (Postgres + PostGIS), Redis (5-minute reservation locks), Stripe Checkout + webhooks, Cloudflare R2 (thumbnails). None are installed yet — add them as features land.
 
 ## Next.js 16 warning
 
