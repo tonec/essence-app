@@ -39,7 +39,7 @@ export class StarRenderer {
     app: Application,
     stars: readonly Star[],
     glowTexture: Texture,
-    factories: PixiFactories,
+    factories: PixiFactories
   ) {
     this.app = app;
     this.stars = stars;
@@ -73,7 +73,7 @@ export class StarRenderer {
   redraw(
     camera: Camera,
     claimedById: ReadonlyMap<number, ClaimedStar>,
-    selectedId: number | null,
+    selectedId: number | null
   ): void {
     const w = this.app.screen.width;
     const h = this.app.screen.height;

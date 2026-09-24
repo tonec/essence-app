@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "format": "npx prettier . --write",
     "link": "supabase link --project-ref kngtsivkipcwgujsuppi",
     "push": "npm run link && supabase db push",
     "build-catalog": "node scripts/build-catalog.mjs"

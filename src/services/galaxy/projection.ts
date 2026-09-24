@@ -47,14 +47,8 @@ export function inverseGnomonic(u: number, v: number, cam: Camera): RaDec {
   const c = Math.atan2(rho, cam.scale);
   const sinC = Math.sin(c);
   const cosC = Math.cos(c);
-  const dec = Math.asin(
-    cosC * Math.sin(cam.dec0) + (v * sinC * Math.cos(cam.dec0)) / rho,
-  );
+  const dec = Math.asin(cosC * Math.sin(cam.dec0) + (v * sinC * Math.cos(cam.dec0)) / rho);
   const ra =
-    cam.ra0 +
-    Math.atan2(
-      u * sinC,
-      rho * Math.cos(cam.dec0) * cosC - v * Math.sin(cam.dec0) * sinC,
-    );
+    cam.ra0 + Math.atan2(u * sinC, rho * Math.cos(cam.dec0) * cosC - v * Math.sin(cam.dec0) * sinC);
   return { ra, dec };
 }

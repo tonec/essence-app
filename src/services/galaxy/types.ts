@@ -10,8 +10,8 @@ export type CatalogStar = {
   g?: string;
 };
 
-export type Tier = 'STANDARD' | 'PRIME';
-export type StarStatus = 'AVAILABLE' | 'RESERVED' | 'CLAIMED';
+export type Tier = "STANDARD" | "PRIME";
+export type StarStatus = "AVAILABLE" | "RESERVED" | "CLAIMED";
 
 export type ClaimedStar = {
   id: number;

@@ -1,8 +1,4 @@
-import {
-  inverseGnomonic,
-  projectGnomonic,
-  type Camera,
-} from "@/services/galaxy/projection";
+import { inverseGnomonic, projectGnomonic, type Camera } from "@/services/galaxy/projection";
 import { clamp } from "@/utils/math";
 import {
   CAMERA_ANIMATION_MS,
@@ -42,7 +38,7 @@ export function zoomToCursor(
   camera: Camera,
   uCursor: number,
   vCursor: number,
-  newScale: number,
+  newScale: number
 ): void {
   const target = inverseGnomonic(uCursor, vCursor, camera);
   camera.scale = newScale;
@@ -51,10 +47,7 @@ export function zoomToCursor(
     if (!p.visible) break;
     const dx = p.u - uCursor;
     const dy = p.v - vCursor;
-    if (
-      Math.abs(dx) < ZOOM_CORRECTION_TOLERANCE &&
-      Math.abs(dy) < ZOOM_CORRECTION_TOLERANCE
-    ) {
+    if (Math.abs(dx) < ZOOM_CORRECTION_TOLERANCE && Math.abs(dy) < ZOOM_CORRECTION_TOLERANCE) {
       break;
     }
     const cosDec = Math.max(0.1, Math.cos(camera.dec0));
@@ -77,7 +70,7 @@ export function animateCamera(
   camera: Camera,
   target: CameraTarget,
   onFrame: () => void,
-  duration = CAMERA_ANIMATION_MS,
+  duration = CAMERA_ANIMATION_MS
 ): () => void {
   const startRa = camera.ra0;
   const startDec = camera.dec0;

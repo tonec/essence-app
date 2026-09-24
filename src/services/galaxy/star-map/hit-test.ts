@@ -1,7 +1,4 @@
-import {
-  HIT_TEST_EXTRA_PX,
-  HIT_TEST_MIN_RADIUS_PX,
-} from "./constants";
+import { HIT_TEST_EXTRA_PX, HIT_TEST_MIN_RADIUS_PX } from "./constants";
 import type { ProjectedStar } from "./types";
 
 // Return the nearest projected star id within its (radius + slop) of (x, y),
@@ -9,7 +6,7 @@ import type { ProjectedStar } from "./types";
 export function pickStarAt(
   projected: readonly ProjectedStar[],
   x: number,
-  y: number,
+  y: number
 ): number | null {
   let nearestId: number | null = null;
   let nearestDist = Infinity;

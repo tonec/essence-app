@@ -3,15 +3,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Camera } from "@/services/galaxy/projection";
 import { animateCamera } from "@/services/galaxy/star-map/camera";
-import {
-  BACKGROUND_COLOR,
-  INITIAL_SCALE,
-} from "@/services/galaxy/star-map/constants";
-import {
-  loadCatalog,
-  loadClaimedStars,
-  prepareStars,
-} from "@/services/galaxy/star-map/data";
+import { BACKGROUND_COLOR, INITIAL_SCALE } from "@/services/galaxy/star-map/constants";
+import { loadCatalog, loadClaimedStars, prepareStars } from "@/services/galaxy/star-map/data";
 import { createGlowTexture } from "@/services/galaxy/star-map/glow-texture";
 import { pickStarAt } from "@/services/galaxy/star-map/hit-test";
 import { attachMapInput } from "@/services/galaxy/star-map/input";
@@ -26,9 +19,7 @@ export function StarMap() {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const resetViewRef = useRef<(() => void) | null>(null);
   const [selected, setSelected] = useState<Star | null>(null);
-  const [claimedById, setClaimedById] = useState<
-    ReadonlyMap<number, ClaimedStar>
-  >(new Map());
+  const [claimedById, setClaimedById] = useState<ReadonlyMap<number, ClaimedStar>>(new Map());
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -67,10 +58,7 @@ export function StarMap() {
       }
       host.appendChild(app.canvas);
 
-      const glowTexture = createGlowTexture(
-        app.renderer,
-        () => new Graphics(),
-      );
+      const glowTexture = createGlowTexture(app.renderer, () => new Graphics());
       const renderer = new StarRenderer(app, stars, glowTexture, {
         Container,
         Graphics,
@@ -90,11 +78,7 @@ export function StarMap() {
 
       resetViewRef.current = () => {
         cancelAnimation?.();
-        cancelAnimation = animateCamera(
-          camera,
-          { ra: 0, dec: 0, scale: INITIAL_SCALE },
-          redraw,
-        );
+        cancelAnimation = animateCamera(camera, { ra: 0, dec: 0, scale: INITIAL_SCALE }, redraw);
       };
 
       redraw();
@@ -151,9 +135,7 @@ export function StarMap() {
       <div ref={hostRef} className="absolute inset-0" />
       {loading && <LoadingOverlay />}
       <ResetViewButton onClick={handleResetView} disabled={loading} />
-      {selected && (
-        <StarInfoDrawer star={selected} claimed={claimedById.get(selected.i)} />
-      )}
+      {selected && <StarInfoDrawer star={selected} claimed={claimedById.get(selected.i)} />}
     </div>
   );
 }

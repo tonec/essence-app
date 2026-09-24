@@ -106,7 +106,7 @@ function handleArrowKeys(
   event: React.KeyboardEvent,
   currentIndex: number,
   totalItems: number,
-  onSelect: (index: number) => void,
+  onSelect: (index: number) => void
 ) {
   let newIndex = currentIndex;
 

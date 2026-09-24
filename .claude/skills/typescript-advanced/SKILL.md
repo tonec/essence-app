@@ -16,17 +16,14 @@ function findById<T extends HasId>(items: T[], id: string): T | undefined {
   return items.find((item) => item.id === id);
 }
 
-function groupBy<T, K extends string | number>(
-  items: T[],
-  keyFn: (item: T) => K,
-): Record<K, T[]> {
+function groupBy<T, K extends string | number>(items: T[], keyFn: (item: T) => K): Record<K, T[]> {
   return items.reduce(
     (acc, item) => {
       const key = keyFn(item);
       (acc[key] ??= []).push(item);
       return acc;
     },
-    {} as Record<K, T[]>,
+    {} as Record<K, T[]>
   );
 }
 
@@ -52,12 +49,11 @@ type UnwrapPromise<T> = T extends Promise<infer U> ? UnwrapPromise<U> : T;
 
 type FunctionReturn<T> = T extends (...args: any[]) => infer R ? R : never;
 
-type ExtractRouteParams<T extends string> =
-  T extends `${string}:${infer Param}/${infer Rest}`
-    ? Param | ExtractRouteParams<Rest>
-    : T extends `${string}:${infer Param}`
-      ? Param
-      : never;
+type ExtractRouteParams<T extends string> = T extends `${string}:${infer Param}/${infer Rest}`
+  ? Param | ExtractRouteParams<Rest>
+  : T extends `${string}:${infer Param}`
+    ? Param
+    : never;
 
 type Params = ExtractRouteParams<"/users/:userId/posts/:postId">;
 ```
@@ -132,10 +128,7 @@ function isNonNull<T>(value: T | null | undefined): value is T {
   return value != null;
 }
 
-function hasProperty<K extends string>(
-  obj: unknown,
-  key: K,
-): obj is Record<K, unknown> {
+function hasProperty<K extends string>(obj: unknown, key: K): obj is Record<K, unknown> {
   return typeof obj === "object" && obj !== null && key in obj;
 }
 
@@ -155,10 +148,7 @@ type DeepPartial<T> = {
 
 type StrictOmit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
-type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<
-  T,
-  Exclude<keyof T, Keys>
-> &
+type RequireAtLeastOne<T, Keys extends keyof T = keyof T> = Pick<T, Exclude<keyof T, Keys>> &
   {
     [K in Keys]-?: Required<Pick<T, K>> & Partial<Pick<T, Exclude<Keys, K>>>;
   }[Keys];

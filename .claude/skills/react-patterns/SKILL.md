@@ -109,9 +109,7 @@ function SignupForm() {
     <form action={formAction}>
       <input name="email" />
       {state.errors.email && <p>{state.errors.email}</p>}
-      <button disabled={isPending}>
-        {isPending ? "Creating..." : "Sign Up"}
-      </button>
+      <button disabled={isPending}>{isPending ? "Creating..." : "Sign Up"}</button>
       {state.message && <p>{state.message}</p>}
     </form>
   );
@@ -245,32 +243,16 @@ function Tabs({ children }: { children: ReactNode }) {
   );
 }
 
-Tabs.Tab = function Tab({
-  index,
-  children,
-}: {
-  index: number;
-  children: ReactNode;
-}) {
+Tabs.Tab = function Tab({ index, children }: { index: number; children: ReactNode }) {
   const { active, setActive } = use(TabsContext);
   return (
-    <button
-      role="tab"
-      aria-selected={active === index}
-      onClick={() => setActive(index)}
-    >
+    <button role="tab" aria-selected={active === index} onClick={() => setActive(index)}>
       {children}
     </button>
   );
 };
 
-Tabs.Panel = function Panel({
-  index,
-  children,
-}: {
-  index: number;
-  children: ReactNode;
-}) {
+Tabs.Panel = function Panel({ index, children }: { index: number; children: ReactNode }) {
   const { active } = use(TabsContext);
   if (active !== index) return null;
   return <div role="tabpanel">{children}</div>;

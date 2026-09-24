@@ -65,11 +65,11 @@ The application uses a **brightness-tiered pricing model**: the visually brighte
 
 Tier is derived from apparent magnitude `b` in `bsc5p_spectral_extra.json` (lower `b` = brighter). Threshold picked from the BSC5P distribution: `b < 3.0` captures the top ~175 stars (~1.9% of catalog) — approximately the "named naked-eye" set.
 
-| Tier Name | Price (One-Time) | Selection Criteria | Features & Entitlements |
-| :--- | :--- | :--- | :--- |
-| **Standard** | **$4.99 USD** | `b ≥ 3.0` (~8,926 stars — majority of catalog) | $32 \times 32$ Construction Plot. Basic Tile Palette (16 standard terrain/metal tiles). 280-character dedication. |
-| **Prime** | **$49.99 USD** | `b < 3.0` (~175 stars — visually prominent, often named) | $32 \times 32$ Construction Plot. VIP Tile Palette (Gold, Holographic, Obsidian tiles). External link / social-handle embed on info card. |
-| **Mega-Plot Expansion (Upsell)** | **+$9.99 USD** | Checkout add-on line item (either tier) | Expands grid bounds from $32 \times 32$ to $64 \times 64$ tiles. Stored as `plots.expanded = true`. |
+| Tier Name                        | Price (One-Time) | Selection Criteria                                       | Features & Entitlements                                                                                                                   |
+| :------------------------------- | :--------------- | :------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Standard**                     | **$4.99 USD**    | `b ≥ 3.0` (~8,926 stars — majority of catalog)           | $32 \times 32$ Construction Plot. Basic Tile Palette (16 standard terrain/metal tiles). 280-character dedication.                         |
+| **Prime**                        | **$49.99 USD**   | `b < 3.0` (~175 stars — visually prominent, often named) | $32 \times 32$ Construction Plot. VIP Tile Palette (Gold, Holographic, Obsidian tiles). External link / social-handle embed on info card. |
+| **Mega-Plot Expansion (Upsell)** | **+$9.99 USD**   | Checkout add-on line item (either tier)                  | Expands grid bounds from $32 \times 32$ to $64 \times 64$ tiles. Stored as `plots.expanded = true`.                                       |
 
 ### 4.2 Stripe Checkout & Plot Reservation Workflow
 
@@ -298,24 +298,24 @@ Defined in `supabase/migrations/00000000000000_schema.sql`, extended by `supabas
 
 Provisioned in the second migration.
 
-| Field Name      | Type         | Constraints                                          | Description                                                                                               |
-| :-------------- | :----------- | :--------------------------------------------------- | :-------------------------------------------------------------------------------------------------------- |
-| `id`            | bigint       | generated always as identity primary key             | Unique plot identifier                                                                                    |
-| `star_id`       | integer      | not null, unique, references stars(id) on delete cascade | Associated star reference                                                                              |
-| `expanded`      | boolean      | not null default false                               | true = Mega-Plot ($64\times64$); false = standard ($32\times32$). `width`/`height` are derived from this. |
-| `tile_data`     | jsonb        | not null default '[]'::jsonb                         | Serialized tile matrix (integer tile IDs; rotations encoded per palette)                                  |
-| `thumbnail_url` | text         | null                                                 | R2 URL for generated PNG preview                                                                          |
-| `updated_at`    | timestamptz  | not null default now()                               | Last tile update timestamp                                                                                |
+| Field Name      | Type        | Constraints                                              | Description                                                                                               |
+| :-------------- | :---------- | :------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------- |
+| `id`            | bigint      | generated always as identity primary key                 | Unique plot identifier                                                                                    |
+| `star_id`       | integer     | not null, unique, references stars(id) on delete cascade | Associated star reference                                                                                 |
+| `expanded`      | boolean     | not null default false                                   | true = Mega-Plot ($64\times64$); false = standard ($32\times32$). `width`/`height` are derived from this. |
+| `tile_data`     | jsonb       | not null default '[]'::jsonb                             | Serialized tile matrix (integer tile IDs; rotations encoded per palette)                                  |
+| `thumbnail_url` | text        | null                                                     | R2 URL for generated PNG preview                                                                          |
+| `updated_at`    | timestamptz | not null default now()                                   | Last tile update timestamp                                                                                |
 
 #### `stripe_events`
 
 Idempotency ledger for Stripe webhook deliveries. Provisioned in the second migration.
 
-| Field Name     | Type        | Constraints              | Description                       |
-| :------------- | :---------- | :----------------------- | :-------------------------------- |
-| `event_id`     | text        | primary key              | Stripe `event.id`                 |
-| `type`         | text        | not null                 | e.g. `checkout.session.completed` |
-| `processed_at` | timestamptz | not null default now()   | First-seen timestamp              |
+| Field Name     | Type        | Constraints            | Description                       |
+| :------------- | :---------- | :--------------------- | :-------------------------------- |
+| `event_id`     | text        | primary key            | Stripe `event.id`                 |
+| `type`         | text        | not null               | e.g. `checkout.session.completed` |
+| `processed_at` | timestamptz | not null default now() | First-seen timestamp              |
 
 ---
 

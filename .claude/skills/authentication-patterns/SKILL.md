@@ -20,13 +20,13 @@ function generateTokens(user: User) {
   const accessToken = jwt.sign(
     { sub: user.id, email: user.email, roles: user.roles },
     process.env.JWT_SECRET!,
-    { expiresIn: "15m", issuer: "auth-service" },
+    { expiresIn: "15m", issuer: "auth-service" }
   );
 
   const refreshToken = jwt.sign(
     { sub: user.id, tokenVersion: user.tokenVersion },
     process.env.REFRESH_SECRET!,
-    { expiresIn: "7d", issuer: "auth-service" },
+    { expiresIn: "7d", issuer: "auth-service" }
   );
 
   return { accessToken, refreshToken };
@@ -82,10 +82,7 @@ import crypto from "crypto";
 
 function generatePKCE() {
   const verifier = crypto.randomBytes(32).toString("base64url");
-  const challenge = crypto
-    .createHash("sha256")
-    .update(verifier)
-    .digest("base64url");
+  const challenge = crypto.createHash("sha256").update(verifier).digest("base64url");
   return { verifier, challenge };
 }
 
@@ -157,16 +154,11 @@ const ROLE_PERMISSIONS: Record<string, Permission[]> = {
   ],
 };
 
-function hasPermission(
-  roles: string[],
-  resource: string,
-  action: string,
-): boolean {
+function hasPermission(roles: string[], resource: string, action: string): boolean {
   return roles.some((role) =>
     ROLE_PERMISSIONS[role]?.some(
-      (p) =>
-        (p.resource === resource || p.resource === "*") && p.action === action,
-    ),
+      (p) => (p.resource === resource || p.resource === "*") && p.action === action
+    )
   );
 }
 ```

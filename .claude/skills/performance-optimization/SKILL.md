@@ -96,7 +96,7 @@ function setCacheHeaders(res: Response, options: CacheOptions) {
   if (options.revalidate) {
     res.setHeader(
       "Cache-Control",
-      `public, max-age=0, s-maxage=${options.revalidate}, stale-while-revalidate=${options.staleWhileRevalidate ?? 86400}`,
+      `public, max-age=0, s-maxage=${options.revalidate}, stale-while-revalidate=${options.staleWhileRevalidate ?? 86400}`
     );
     return;
   }

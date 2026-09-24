@@ -4,10 +4,7 @@ import { GLOW_TEXTURE_RADIUS } from "./constants";
 // Build a shared white radial-glow texture: bright core wrapped in progressively
 // softer halos. Sprites tint this texture to each star's colour so the palette
 // shows through the glow.
-export function createGlowTexture(
-  renderer: Renderer,
-  makeGraphics: () => Graphics,
-): Texture {
+export function createGlowTexture(renderer: Renderer, makeGraphics: () => Graphics): Texture {
   const gfx = makeGraphics()
     .circle(0, 0, GLOW_TEXTURE_RADIUS)
     .fill({ color: 0xffffff, alpha: 0.05 })

@@ -1,11 +1,5 @@
 import type { Camera } from "@/services/galaxy/projection";
-import {
-  clampDec,
-  clampScale,
-  normalizeRa,
-  panBy,
-  zoomToCursor,
-} from "./camera";
+import { clampDec, clampScale, normalizeRa, panBy, zoomToCursor } from "./camera";
 import {
   DRAG_THRESHOLD_PX,
   KEYBOARD_PAN_SHIFT_MULTIPLIER,
