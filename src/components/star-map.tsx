@@ -89,6 +89,9 @@ export function StarMap() {
         const h = app.screen.height;
         const cx = w / 2;
         const cy = h / 2;
+        // Sublinear zoom-to-size mapping so stars grow when you zoom in but
+        // don't dominate the screen at max zoom.
+        const zoomSizeFactor = Math.sqrt(camera.scale / INITIAL_SCALE);
 
         starGfx.clear();
         ringGfx.clear();
@@ -100,7 +103,8 @@ export function StarMap() {
           if (!p.visible) continue;
           const sx = cx + p.u;
           const sy = cy - p.v;
-          if (sx < -20 || sy < -20 || sx > w + 20 || sy > h + 20) continue;
+          const r = s.screenRadius * zoomSizeFactor;
+          if (sx < -r - 4 || sy < -r - 4 || sx > w + r + 4 || sy > h + r + 4) continue;
 
           const claimed = claimedMap.get(s.i);
           const colour = claimed
@@ -109,23 +113,21 @@ export function StarMap() {
               : 0x8ecae6
             : rgbToHex(s.K.r, s.K.g, s.K.b);
 
-          starGfx
-            .circle(sx, sy, s.screenRadius)
-            .fill({ color: colour, alpha: 0.95 });
+          starGfx.circle(sx, sy, r).fill({ color: colour, alpha: 0.95 });
 
           if (claimed) {
             ringGfx
-              .circle(sx, sy, s.screenRadius + 4)
+              .circle(sx, sy, r + 4)
               .stroke({ color: colour, width: 1, alpha: 0.6 });
           }
 
           if (currentSelectedId === s.i) {
             selectionGfx
-              .circle(sx, sy, s.screenRadius + 8)
+              .circle(sx, sy, r + 8)
               .stroke({ color: 0xffffff, width: 2, alpha: 0.9 });
           }
 
-          projectedScreen.push({ id: s.i, x: sx, y: sy, r: s.screenRadius });
+          projectedScreen.push({ id: s.i, x: sx, y: sy, r });
         }
       };
 
