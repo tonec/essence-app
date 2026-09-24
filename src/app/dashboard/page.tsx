@@ -1,4 +1,4 @@
-import { StarMap } from '@/components/star-map';
+import { StarMap } from "@/components/StarMap";
 
 export default function DashboardPage() {
   return (
