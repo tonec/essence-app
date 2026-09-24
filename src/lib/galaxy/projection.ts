@@ -38,3 +38,23 @@ export function projectGnomonic(star: RaDec, cam: Camera): Projected {
 
   return { u, v, visible: true };
 }
+
+// Inverse gnomonic: recover the sky direction (RA, Dec) that lands at
+// screen offset (u, v) for the given camera.
+export function inverseGnomonic(u: number, v: number, cam: Camera): RaDec {
+  const rho = Math.hypot(u, v);
+  if (rho === 0) return { ra: cam.ra0, dec: cam.dec0 };
+  const c = Math.atan2(rho, cam.scale);
+  const sinC = Math.sin(c);
+  const cosC = Math.cos(c);
+  const dec = Math.asin(
+    cosC * Math.sin(cam.dec0) + (v * sinC * Math.cos(cam.dec0)) / rho,
+  );
+  const ra =
+    cam.ra0 +
+    Math.atan2(
+      u * sinC,
+      rho * Math.cos(cam.dec0) * cosC - v * Math.sin(cam.dec0) * sinC,
+    );
+  return { ra, dec };
+}

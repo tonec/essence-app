@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import {
+  inverseGnomonic,
   projectGnomonic,
   xyzToRaDec,
   type Camera,
@@ -203,7 +204,36 @@ export function StarMap() {
       const onWheel = (e: WheelEvent) => {
         e.preventDefault();
         const factor = Math.pow(1.0015, -e.deltaY);
-        camera.scale = clamp(camera.scale * factor, MIN_SCALE, MAX_SCALE);
+        const s1 = camera.scale;
+        const s2 = clamp(s1 * factor, MIN_SCALE, MAX_SCALE);
+        if (s2 === s1) return;
+
+        // Zoom towards the cursor: find the sky direction currently under the
+        // pointer, change scale, then nudge the camera so that same direction
+        // projects back to the cursor. A few iterations converge cleanly even
+        // when the cursor is far off-center.
+        const rect = canvas.getBoundingClientRect();
+        const uCursor = e.clientX - rect.left - app.screen.width / 2;
+        const vCursor = app.screen.height / 2 - (e.clientY - rect.top);
+        const target = inverseGnomonic(uCursor, vCursor, camera);
+
+        camera.scale = s2;
+
+        for (let i = 0; i < 4; i++) {
+          const p = projectGnomonic(target, camera);
+          if (!p.visible) break;
+          const dx = p.u - uCursor;
+          const dy = p.v - vCursor;
+          if (Math.abs(dx) < 0.25 && Math.abs(dy) < 0.25) break;
+          const cosDec = Math.max(0.1, Math.cos(camera.dec0));
+          camera.ra0 += dx / camera.scale / cosDec;
+          camera.dec0 = clamp(
+            camera.dec0 + dy / camera.scale,
+            -Math.PI / 2 + 0.01,
+            Math.PI / 2 - 0.01,
+          );
+        }
+        camera.ra0 = ((camera.ra0 % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
         redraw();
       };
 
