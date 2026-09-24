@@ -5,9 +5,9 @@ import type {
   Sprite as SpriteType,
   Texture,
 } from "pixi.js";
-import { projectGnomonic, type Camera } from "@/lib/galaxy/projection";
-import type { ClaimedStar } from "@/lib/galaxy/types";
-import { rgbToHex } from "@/lib/util/color";
+import { projectGnomonic, type Camera } from "@/services/galaxy/projection";
+import type { ClaimedStar } from "@/services/galaxy/types";
+import { rgbToHex } from "@/utils/color";
 import {
   CLAIMED_RING_OFFSET_PX,
   GLOW_TEXTURE_RADIUS,

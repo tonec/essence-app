@@ -1,4 +1,4 @@
-import type { Camera } from "@/lib/galaxy/projection";
+import type { Camera } from "@/services/galaxy/projection";
 import {
   clampDec,
   clampScale,

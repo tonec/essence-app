@@ -1,5 +1,5 @@
-import { xyzToRaDec } from "@/lib/galaxy/projection";
-import type { CatalogStar, ClaimedStar } from "@/lib/galaxy/types";
+import { xyzToRaDec } from "@/services/galaxy/projection";
+import type { CatalogStar, ClaimedStar } from "@/services/galaxy/types";
 import { GLOW_TEXTURE_RADIUS } from "./constants";
 import type { Star } from "./types";
 

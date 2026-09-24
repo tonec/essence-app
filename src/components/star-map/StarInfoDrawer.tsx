@@ -1,5 +1,5 @@
-import type { Star } from "@/lib/galaxy/star-map/types";
-import type { ClaimedStar } from "@/lib/galaxy/types";
+import type { Star } from "@/services/galaxy/star-map/types";
+import type { ClaimedStar } from "@/services/galaxy/types";
 
 type Props = {
   star: Star;

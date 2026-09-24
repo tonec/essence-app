@@ -1,4 +1,4 @@
-import type { CatalogStar } from "@/lib/galaxy/types";
+import type { CatalogStar } from "@/services/galaxy/types";
 
 export type Star = CatalogStar & {
   ra: number;

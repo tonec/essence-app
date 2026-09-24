@@ -8,7 +8,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const GALAXY_DIR = resolve(__dirname, '../src/lib/galaxy');
+const GALAXY_DIR = resolve(__dirname, '../src/services/galaxy');
 const OUT_FILE = resolve(__dirname, '../public/catalog.json');
 
 // Edit this to change what ends up in the merged catalog.

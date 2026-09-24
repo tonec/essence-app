@@ -2,8 +2,8 @@ import {
   inverseGnomonic,
   projectGnomonic,
   type Camera,
-} from "@/lib/galaxy/projection";
-import { clamp } from "@/lib/util/math";
+} from "@/services/galaxy/projection";
+import { clamp } from "@/utils/math";
 import {
   CAMERA_ANIMATION_MS,
   MAX_SCALE,

@@ -1,23 +1,23 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Camera } from "@/lib/galaxy/projection";
-import { animateCamera } from "@/lib/galaxy/star-map/camera";
+import type { Camera } from "@/services/galaxy/projection";
+import { animateCamera } from "@/services/galaxy/star-map/camera";
 import {
   BACKGROUND_COLOR,
   INITIAL_SCALE,
-} from "@/lib/galaxy/star-map/constants";
+} from "@/services/galaxy/star-map/constants";
 import {
   loadCatalog,
   loadClaimedStars,
   prepareStars,
-} from "@/lib/galaxy/star-map/data";
-import { createGlowTexture } from "@/lib/galaxy/star-map/glow-texture";
-import { pickStarAt } from "@/lib/galaxy/star-map/hit-test";
-import { attachMapInput } from "@/lib/galaxy/star-map/input";
-import { StarRenderer } from "@/lib/galaxy/star-map/renderer";
-import type { Star } from "@/lib/galaxy/star-map/types";
-import type { ClaimedStar } from "@/lib/galaxy/types";
+} from "@/services/galaxy/star-map/data";
+import { createGlowTexture } from "@/services/galaxy/star-map/glow-texture";
+import { pickStarAt } from "@/services/galaxy/star-map/hit-test";
+import { attachMapInput } from "@/services/galaxy/star-map/input";
+import { StarRenderer } from "@/services/galaxy/star-map/renderer";
+import type { Star } from "@/services/galaxy/star-map/types";
+import type { ClaimedStar } from "@/services/galaxy/types";
 import { LoadingOverlay } from "./star-map/LoadingOverlay";
 import { ResetViewButton } from "./star-map/ResetViewButton";
 import { StarInfoDrawer } from "./star-map/StarInfoDrawer";
