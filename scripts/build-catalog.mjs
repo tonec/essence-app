@@ -14,15 +14,27 @@ const OUT_FILE = resolve(__dirname, '../public/catalog.json');
 // Edit this to change what ends up in the merged catalog.
 // `fields: '*'` copies every field (except the join key `i`).
 // `rename` remaps a source key to a different name in the output.
-//
-// The alt-names array in bsc5p_names.json is intentionally omitted here
-// — it inflates the file by ~8 MB and isn't needed for map rendering.
-// Add it back to a separate catalog if the star info drawer needs it.
+// `transform(row)` returns extra fields to merge (overrides earlier sources).
 const SOURCES = [
   {
     file: 'bsc5p_3d.json',
     fields: ['n', 'x', 'y', 'z', 'N', 'K'],
     rename: {},
+  },
+  {
+    // Prefer the first human "NAME <name>" entry from the alt-names list
+    // when one exists. Falls back silently to whatever `n` bsc5p_3d gave us
+    // if this row has no NAME entries. We deliberately don't ship the full
+    // alt-names array — it would inflate the catalog by ~8 MB.
+    file: 'bsc5p_names.json',
+    fields: [],
+    transform: (row) => {
+      if (!Array.isArray(row.n)) return {};
+      const named = row.n.find(
+        (x) => typeof x === 'string' && x.startsWith('NAME '),
+      );
+      return named ? { n: named.slice('NAME '.length).trim() } : {};
+    },
   },
   {
     file: 'bsc5p_spectral_extra.json',
@@ -60,7 +72,10 @@ async function main() {
     for (const row of rows) {
       if (row.i === undefined) throw new Error(`Missing 'i' in ${source.file}`);
       const existing = merged.get(row.i);
-      const picked = pick(row, source.fields, source.rename ?? {});
+      const picked = {
+        ...pick(row, source.fields ?? [], source.rename ?? {}),
+        ...(source.transform ? source.transform(row) : {}),
+      };
       if (existing) {
         Object.assign(existing, picked);
         updated++;

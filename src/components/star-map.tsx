@@ -9,11 +9,20 @@ import {
 } from "@/lib/galaxy/projection";
 import type { CatalogStar, ClaimedStar } from "@/lib/galaxy/types";
 
-type Star = CatalogStar & { ra: number; dec: number; screenRadius: number };
+type Star = CatalogStar & {
+  ra: number;
+  dec: number;
+  baseScale: number;
+  hitRadius: number;
+};
 
 const INITIAL_SCALE = 400;
 const MIN_SCALE = 50;
 const MAX_SCALE = 20000;
+
+// Radius of the glow texture in logical pixels. Sprite scale=1 renders a
+// star this big; brightness- and zoom-based scaling multiply from here.
+const GLOW_TEXTURE_RADIUS = 16;
 
 export function StarMap() {
   const hostRef = useRef<HTMLDivElement | null>(null);
@@ -28,12 +37,12 @@ export function StarMap() {
     let cleanup: (() => void) | null = null;
 
     (async () => {
-      const [{ Application, Graphics, Container }, catalogRes, claimedRes] =
-        await Promise.all([
-          import("pixi.js"),
-          fetch("/catalog.json"),
-          fetch("/api/stars"),
-        ]);
+      const [pixi, catalogRes, claimedRes] = await Promise.all([
+        import("pixi.js"),
+        fetch("/catalog.json"),
+        fetch("/api/stars"),
+      ]);
+      const { Application, Graphics, Container, Sprite } = pixi;
 
       if (cancelled) return;
 
@@ -47,8 +56,16 @@ export function StarMap() {
       const stars: Star[] = rawCatalog.map((s) => {
         const { ra, dec } = xyzToRaDec(s.x, s.y, s.z);
         const b = typeof s.b === "number" ? s.b : 6;
+        // Star's on-screen radius at INITIAL_SCALE, in logical pixels.
+        // Ranges from 0.5 (dim) to 5 (Sirius-bright).
         const screenRadius = Math.max(0.5, Math.min(5, 6 - b));
-        return { ...s, ra, dec, screenRadius };
+        return {
+          ...s,
+          ra,
+          dec,
+          baseScale: screenRadius / GLOW_TEXTURE_RADIUS,
+          hitRadius: screenRadius,
+        };
       });
 
       const host = hostRef.current;
@@ -71,13 +88,47 @@ export function StarMap() {
       host.appendChild(app.canvas);
       app.canvas.style.cursor = "grab";
 
+      // Build the shared white radial-glow texture once. Concentric fills
+      // form a bright core with a soft, semi-transparent halo. Each star's
+      // Sprite tints this texture to its own colour so the palette shows
+      // through the glow.
+      const glowGfx = new Graphics()
+        .circle(0, 0, GLOW_TEXTURE_RADIUS)
+        .fill({ color: 0xffffff, alpha: 0.05 })
+        .circle(0, 0, GLOW_TEXTURE_RADIUS * 0.75)
+        .fill({ color: 0xffffff, alpha: 0.08 })
+        .circle(0, 0, GLOW_TEXTURE_RADIUS * 0.5)
+        .fill({ color: 0xffffff, alpha: 0.16 })
+        .circle(0, 0, GLOW_TEXTURE_RADIUS * 0.3)
+        .fill({ color: 0xffffff, alpha: 0.35 })
+        .circle(0, 0, GLOW_TEXTURE_RADIUS * 0.15)
+        .fill({ color: 0xffffff, alpha: 0.9 });
+      const glowTexture = app.renderer.generateTexture({
+        target: glowGfx,
+        resolution: 2,
+      });
+      glowGfx.destroy();
+
       const layer = new Container();
       app.stage.addChild(layer);
 
-      const starGfx = new Graphics();
+      const starLayer = new Container();
+      starLayer.eventMode = "none";
       const ringGfx = new Graphics();
       const selectionGfx = new Graphics();
-      layer.addChild(starGfx, ringGfx, selectionGfx);
+      layer.addChild(starLayer, ringGfx, selectionGfx);
+
+      // One sprite per star, created once and re-used across redraws.
+      const sprites: import("pixi.js").Sprite[] = new Array(stars.length);
+      for (let idx = 0; idx < stars.length; idx++) {
+        const s = stars[idx];
+        const sprite = new Sprite(glowTexture);
+        sprite.anchor.set(0.5);
+        sprite.tint = rgbToHex(s.K.r, s.K.g, s.K.b);
+        sprite.visible = false;
+        starLayer.addChild(sprite);
+        sprites[idx] = sprite;
+      }
 
       const camera: Camera = { ra0: 0, dec0: 0, scale: INITIAL_SCALE };
       let currentSelectedId: number | null = null;
@@ -94,32 +145,44 @@ export function StarMap() {
         // don't dominate the screen at max zoom.
         const zoomSizeFactor = Math.sqrt(camera.scale / INITIAL_SCALE);
 
-        starGfx.clear();
         ringGfx.clear();
         selectionGfx.clear();
         projectedScreen.length = 0;
 
-        for (const s of stars) {
+        for (let idx = 0; idx < stars.length; idx++) {
+          const s = stars[idx];
+          const sprite = sprites[idx];
           const p = projectGnomonic({ ra: s.ra, dec: s.dec }, camera);
-          if (!p.visible) continue;
+          if (!p.visible) {
+            sprite.visible = false;
+            continue;
+          }
           const sx = cx + p.u;
           const sy = cy - p.v;
-          const r = s.screenRadius * zoomSizeFactor;
-          if (sx < -r - 4 || sy < -r - 4 || sx > w + r + 4 || sy > h + r + 4) continue;
+          const r = s.hitRadius * zoomSizeFactor;
+          const halo = r + GLOW_TEXTURE_RADIUS * zoomSizeFactor;
+          if (sx < -halo || sy < -halo || sx > w + halo || sy > h + halo) {
+            sprite.visible = false;
+            continue;
+          }
 
           const claimed = claimedMap.get(s.i);
-          const colour = claimed
+          const tintColour = claimed
             ? claimed.tier === "PRIME"
               ? 0xffd166
               : 0x8ecae6
             : rgbToHex(s.K.r, s.K.g, s.K.b);
 
-          starGfx.circle(sx, sy, r).fill({ color: colour, alpha: 0.95 });
+          sprite.visible = true;
+          sprite.x = sx;
+          sprite.y = sy;
+          sprite.tint = tintColour;
+          sprite.scale.set(s.baseScale * zoomSizeFactor);
 
           if (claimed) {
             ringGfx
               .circle(sx, sy, r + 4)
-              .stroke({ color: colour, width: 1, alpha: 0.6 });
+              .stroke({ color: tintColour, width: 1, alpha: 0.6 });
           }
 
           if (currentSelectedId === s.i) {
@@ -233,7 +296,8 @@ export function StarMap() {
             Math.PI / 2 - 0.01,
           );
         }
-        camera.ra0 = ((camera.ra0 % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        camera.ra0 =
+          ((camera.ra0 % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
         redraw();
       };
 
@@ -264,6 +328,7 @@ export function StarMap() {
         canvas.removeEventListener("wheel", onWheel);
         resizeObserver.disconnect();
         app.destroy(true, { children: true });
+        glowTexture.destroy(true);
       };
     })();
 
