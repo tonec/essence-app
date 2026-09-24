@@ -234,21 +234,19 @@ Refer to the Better Auth docs
 
 #### `stars`
 
-| Field Name               | Type         | Constraints                            | Description               |
-| :----------------------- | :----------- | :------------------------------------- | :------------------------ |
-| `id`                     | UUID         | PRIMARY KEY, DEFAULT gen_random_uuid() | Unique star identifier    |
-| `user_id`                | UUID         | FOREIGN KEY -> users(id)               | Star owner reference      |
-| `coord_x`                | INTEGER      | NOT NULL                               | Grid X coordinate         |
-| `coord_y`                | INTEGER      | NOT NULL                               | Grid Y coordinate         |
-| `coord_z`                | INTEGER      | NOT NULL                               | Grid Z coordinate         |
-| `star_name`              | VARCHAR(100) | NOT NULL                               | Custom star title         |
-| `dedication_text`        | TEXT         | CHECK (char_length <= 280)             | Custom user dedication    |
-| `tier`                   | ENUM         | 'STANDARD', 'CONSTELLATION', 'PRIME'   | Pricing tier category     |
-| `status`                 | ENUM         | 'RESERVED', 'CLAIMED'                  | Plot reservation state    |
-| `stripe_session_id`      | VARCHAR(255) | NULLABLE                               | Active Stripe checkout ID |
-| `stripe_payment_id`      | VARCHAR(255) | NULLABLE                               | Confirmed charge ID       |
-| `reservation_expires_at` | TIMESTAMP    | NULLABLE                               | Expiry timestamp for lock |
-| `created_at`             | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP              | Registration timestamp    |
+| Field Name               | Type        | Constraints                        | Description               |
+| :----------------------- | :---------- | :--------------------------------- | :------------------------ |
+| `id`                     | integer     | primary key                        | Unique star identifier    |
+| `user_id`                | uuid        | references auth.users (id)         | Star owner reference      |
+| `coord_x`                | integer     | not null                           | Grid X coordinate         |
+| `coord_y`                | integer     | not null                           | Grid Y coordinate         |
+| `star_name`              | text        | not null                           | Custom star title         |
+| `tier`                   | enum        | 'STANDARD', 'PRIME'                | Pricing tier category     |
+| `status`                 | enum        | 'AVAILABLE', 'RESERVED', 'CLAIMED' | Plot reservation state    |
+| `reservation_expires_at` | timestamptz | default null                       | Expiry timestamp for lock |
+| `stripe_session_id`      | text        | default null                       | Active Stripe checkout ID |
+| `stripe_payment_id`      | text        | default null                       | Confirmed charge ID       |
+| `created_at`             | timestamptz | default now() not null             | Registration timestamp    |
 
 #### `plots`
 
