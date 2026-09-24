@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"for \\(const f of ['bsc5p_3d','bsc5p_names','bsc5p_spectral_extra']\\) { const d = require\\('/Users/tony/Project/essence/essence-app/src/lib/galaxy/'+f+'.json'\\); console.log\\(f, 'len=', d.length, 'sample=', JSON.stringify\\(d[0]\\)\\); }\")"
+    ]
+  }
+}

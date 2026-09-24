@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "link": "supabase link --project-ref kngtsivkipcwgujsuppi",
-    "push": "npm run link && supabase db push"
+    "push": "npm run link && supabase db push",
+    "build-catalog": "node scripts/build-catalog.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
