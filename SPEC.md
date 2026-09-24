@@ -313,17 +313,17 @@ Idempotency ledger for Stripe webhook deliveries.
 ## 9. Development Milestones & Roadmap
 
 ```
-Phase 1: Core Tile Builder Engine (Weeks 1-3)
- ├─ Build 32x32 canvas grid editor in React/PixiJS
- ├─ Implement draw, erase, eyedropper, and tile palette selector
- └─ Local state serialization testing
-
-Phase 2: Galaxy Map & Spatial Database (Weeks 4-6)
+Phase 1: Galaxy Map & Spatial Database (Weeks 1-3)
  ├─ Implement 2D pan/zoom PixiJS viewport with LOD
  ├─ Load BSC5P catalog, project x/y, compute radial tier at query time
  ├─ Set up Supabase schema (stars, plots, stripe_events), map/chunks API
  ├─ Real-time rendering of claimed star plots on main map
  └─ Each star clickable, rendering a ring around the selected star and the name and $(X, Y)$ displayed in an overlay in the bottom left.
+
+Phase 2: Core Tile Builder Engine (Weeks 4-6)
+ ├─ Build 32x32 canvas grid editor in React/PixiJS
+ ├─ Implement draw, erase, eyedropper, and tile palette selector
+ └─ Local state serialization testing
 
 Phase 3: Stripe Payments & Lock Engine (Weeks 7-9)
  ├─ Redis coordinate lock mechanism (5-minute expiration)
