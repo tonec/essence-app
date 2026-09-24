@@ -9,28 +9,32 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const GALAXY_DIR = resolve(__dirname, '../src/lib/galaxy');
-const OUT_FILE = resolve(GALAXY_DIR, 'catalog.json');
+const OUT_FILE = resolve(__dirname, '../public/catalog.json');
 
 // Edit this to change what ends up in the merged catalog.
 // `fields: '*'` copies every field (except the join key `i`).
 // `rename` remaps a source key to a different name in the output.
+//
+// The alt-names array in bsc5p_names.json is intentionally omitted here
+// — it inflates the file by ~8 MB and isn't needed for map rendering.
+// Add it back to a separate catalog if the star info drawer needs it.
 const SOURCES = [
   {
     file: 'bsc5p_3d.json',
-    fields: ['n', 'x', 'y', 'z', 'p', 'N', 'K'],
+    fields: ['n', 'x', 'y', 'z', 'N', 'K'],
     rename: {},
-  },
-  {
-    file: 'bsc5p_names.json',
-    fields: ['n'],
-    rename: { n: 'names' },
   },
   {
     file: 'bsc5p_spectral_extra.json',
-    fields: ['b', 'a', 's', 'g', 'C', 'S'],
+    fields: ['b', 'g'],
     rename: {},
   },
 ];
+
+// Drop merged rows that don't have all of these fields. Keeps the runtime
+// renderer from crashing on incomplete catalog entries (e.g. rows without
+// a color vector `K`).
+const REQUIRED_FIELDS = ['x', 'y', 'z', 'K'];
 
 async function loadJson(path) {
   return JSON.parse(await readFile(path, 'utf8'));
@@ -68,10 +72,18 @@ async function main() {
     console.log(`${source.file}: ${rows.length} rows (added ${added}, updated ${updated})`);
   }
 
-  const out = Array.from(merged.values()).sort((a, b) => {
-    if (typeof a.i === 'number' && typeof b.i === 'number') return a.i - b.i;
-    return String(a.i).localeCompare(String(b.i));
-  });
+  const allRows = Array.from(merged.values());
+  const out = allRows
+    .filter((row) => REQUIRED_FIELDS.every((k) => row[k] !== undefined))
+    .sort((a, b) => {
+      if (typeof a.i === 'number' && typeof b.i === 'number') return a.i - b.i;
+      return String(a.i).localeCompare(String(b.i));
+    });
+
+  const dropped = allRows.length - out.length;
+  if (dropped > 0) {
+    console.log(`Dropped ${dropped} rows missing required fields (${REQUIRED_FIELDS.join(', ')})`);
+  }
 
   await mkdir(dirname(OUT_FILE), { recursive: true });
   await writeFile(OUT_FILE, JSON.stringify(out));
