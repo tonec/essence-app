@@ -1,7 +1,7 @@
 # Product Specification Document (SPEC.MD)
 
 **Project Name:** Star-Builder (Working Title)  
-**Document Version:** 1.0.0  
+**Document Version:** 1.1.0  
 **Status:** Draft / Initial Specification
 
 ---
@@ -10,7 +10,7 @@
 
 **Star-Builder** is a persistent, multiplayer web application that bridges the gap between sentimental online star registration, digital real-estate advertising, and creative retro sandbox gaming (such as _Terraria_ or _Starbound_).
 
-Users explore an infinite, stylized 3D canvas star map representing a shared galaxy field. On this map, users can purchase, name, and dedicate vacant star coordinates. Upon claiming a star, the user receives an associated $32 \times 32$ pixel construction plot anchored directly to their celestial location. Using an integrated 2D pixel-art builder engine, owners can construct custom pixel structures, sci-fi habitats, neon billboards, monuments, or creative art pieces that are permanently rendered onto the public universe map for all visitors to discover.
+Users explore a stylized 2D canvas star map representing a shared galaxy field. The claimable universe is the finite **BSC5P catalog (~9,101 real stars)** projected to a 2D plane (`x`, `y` in parsecs from the BSC5P `bsc5p_3d.json`; `z` is used only as a visual/parallax hint). On this map, users can purchase, name, and dedicate vacant catalog stars. Upon claiming a star, the user receives an associated $32 \times 32$ pixel construction plot anchored directly to their celestial location. Using an integrated 2D pixel-art builder engine, owners can construct custom pixel structures, sci-fi habitats, neon billboards, monuments, or creative art pieces that are permanently rendered onto the public universe map for all visitors to discover.
 
 ---
 
@@ -21,7 +21,7 @@ The user interaction follows a tightly designed 4-step loop:
 ```
 ┌─────────────────────────────────────────────────────────┐
 │ 1. EXPLORE & SELECT                                     │
-│ Navigate galaxy map, locate vacant coordinates, and      │
+│ Navigate galaxy map, locate vacant catalog stars, and    │
 │ inspect registered star structures and dedications.      │
 └──────────────────────────┬──────────────────────────────┘
                            │
@@ -42,7 +42,7 @@ The user interaction follows a tightly designed 4-step loop:
                            ▼
 ┌─────────────────────────────────────────────────────────┐
 │ 4. PUBLISH & SHARE                                      │
-│ Changes commit live to the infinite galaxy map.         │
+│ Changes commit live to the shared galaxy map.           │
 │ Share unique coordinates via direct deep-link URLs.     │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -59,37 +59,46 @@ The user interaction follows a tightly designed 4-step loop:
 
 ## 4. Business Model & Stripe Pricing Architecture
 
-The application utilizes a **Tiered Location & Feature Pricing Model** based on coordinate prominence and visual appeal across the galaxy map.
+The application utilizes a **Tiered Location & Feature Pricing Model** based on a star's radial distance from the galactic origin `(0, 0)` in 2D parsec-space.
 
 ### 4.1 Coordinate Pricing Tiers
 
-| Tier Name | Price (One-Time) | Coordinate Criteria | Features & Entitlements
-| **Standard Outer Rim** | **$4.99 USD** | Outer sector grid | Standard $32 \times 32$ Construction Plot. Basic Tile Palette (16 standard terrain/metal tiles). 280-character dedication message |
-| **Constellation / System** | **$14.99 USD** | Outer sector grid | Standard $32 \times 32$ Construction Plot. Extended Palette (Animated neon, bioluminescent flora). Star glow tint selector & custom particle effect |
-| **Core Center / Prime** | **$49.99 USD** | Central galactic hub | Standard $32 \times 32$ Construction Plot. VIP Tile Palette (Gold, Holographic, Obsidian tiles). External link / social handle embed on info card |
-| **Mega-Plot Expansion (Upsell)** | **+$9.99 USD** | Add-on to any existing star transaction | Expands grid bounds from $32 \times 32$ to $64 \times 64$ tiles |
+Tier is derived deterministically from a star's 2D radius `r = hypot(x, y)` where `x`, `y` come from `bsc5p_3d.json`. Thresholds are chosen from the BSC5P distribution (n=9,101; p25≈51 pc, p50≈103 pc, p75≈186 pc):
+
+| Tier Name                        | Price (One-Time) | Selection Criteria                                | Features & Entitlements                                                                                                                     |
+| :------------------------------- | :--------------- | :------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Standard Outer Rim**           | **$4.99 USD**    | `r ≥ 200 pc` (long tail — majority of catalog)    | $32 \times 32$ Construction Plot. Basic Tile Palette (16 standard terrain/metal tiles). 280-character dedication.                           |
+| **Constellation / System**       | **$14.99 USD**   | `50 ≤ r < 200 pc` (mid-band — roughly middle 50%) | $32 \times 32$ Construction Plot. Extended Palette (animated neon, bioluminescent flora). Star glow tint selector & custom particle effect. |
+| **Core Center / Prime**          | **$49.99 USD**   | `r < 50 pc` (inner sphere — scarce)               | $32 \times 32$ Construction Plot. VIP Tile Palette (Gold, Holographic, Obsidian tiles). External link / social-handle embed on info card.   |
+| **Mega-Plot Expansion (Upsell)** | **+$9.99 USD**   | Checkout add-on line item (any tier)              | Expands grid bounds from $32 \times 32$ to $64 \times 64$ tiles. Stored as `plots.expanded = true`.                                         |
 
 ### 4.2 Stripe Checkout & Plot Reservation Workflow
 
-To prevent race conditions where multiple users attempt to buy the same coordinate simultaneously:
+To prevent race conditions where multiple users attempt to buy the same star simultaneously:
 
-1. **Selection:** User selects an available coordinate $(X, Y, Z)$.
-2. **Temporary Lock:** Backend receives a reservation request and marks coordinate status as `RESERVED` for 300 seconds (5 minutes) in Redis / Database.
-3. **Checkout Creation:** Backend initializes a Stripe Checkout Session containing metadata: `coord_x`, `coord_y`, `star_name`, `dedication_text`, and `user_id`.
+1. **Selection:** User selects an available catalog star (identified by its BSC5P `i` key).
+2. **Temporary Lock:** Backend takes a 300-second Redis lock keyed on `catalog_id`. Vacant = no `stars` row and no active Redis lock; no `VACANT` DB state is needed.
+3. **Checkout Creation:** Backend initializes a Stripe Checkout Session with metadata: `catalog_id`, `star_name`, `dedication_text`, `user_id`, `tier`, and optional `mega_plot` flag.
 4. **Payment Fulfillment:**
-   - **On Success:** Stripe fires `checkout.session.completed` webhook. Backend converts status from `RESERVED` to `CLAIMED`, releases lock, assigns ownership, and sends confirmation.
-   - **On Expiry/Cancel:** The 5-minute lock expires, resetting status back to `VACANT`.
+   - **On Success:** Stripe fires `checkout.session.completed`. Backend inserts the `stars` row (`status = CLAIMED`), provisions the `plots` row, releases the Redis lock, and emails confirmation.
+   - **On Expiry/Cancel:** Redis TTL expires or `checkout.session.expired` fires; the lock is dropped and the star returns to selectable state.
+
+**Webhook robustness requirements:**
+
+- **Idempotency:** Dedupe by `event.id` (persisted table); repeated deliveries of the same event must be no-ops.
+- **Raw body:** Next.js route handlers must read `await req.text()` before parsing so Stripe signature verification receives the exact bytes.
+- **Handled events:** `checkout.session.completed`, `checkout.session.expired`. Later: `charge.refunded`, `charge.dispute.created`.
 
 ```
-[ User Selects Coordinate ]
+[ User Selects Catalog Star ]
             │
             ▼
-[ Backend Locks Plot (5 Min Expiry) ]
+[ Backend Locks catalog_id in Redis (5 Min TTL) ]
             │
             ▼
 [ Create Stripe Checkout Session ]
-  ├─ Metadata: star_name, coord_x, coord_y, coord_z, user_id, tier
-  └─ Amount based on coordinate distance
+  ├─ Metadata: catalog_id, star_name, dedication_text, user_id, tier, mega_plot
+  └─ Amount derived from tier (+ Mega-Plot add-on if selected)
             │
             ▼
 [ User Pays via Stripe Checkout ]
@@ -98,8 +107,8 @@ To prevent race conditions where multiple users attempt to buy the same coordina
 [ Stripe Webhook: checkout.session.completed ]
             │
             ▼
-[ Transition Database Status: RESERVED -> CLAIMED ]
-  └─ Provision 32x32 Plot Record in Database
+[ Insert stars row (status=CLAIMED) + plots row ]
+  └─ Release Redis lock, send confirmation email
 ```
 
 ---
@@ -109,36 +118,40 @@ To prevent race conditions where multiple users attempt to buy the same coordina
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                         FRONTEND CLIENT                         │
-│   Next.js / React (TypeScript)  │  Three.js / HTML5 Canvas API  │
-│   • Galaxy Map Renderer         │  • 32x32 Tile Builder Engine  │
-│   • WebGL Tile Layering         │  • Tailwind CSS UI Controls   │
+│   Next.js 16 / React 19 (TypeScript)                            │
+│   • PixiJS Galaxy Map Renderer  │  • PixiJS 32x32 Tile Editor   │
+│   • 2D pan/zoom + LOD           │  • Tailwind v4 UI Controls    │
 └────────────────────────────────┬────────────────────────────────┘
-                                 │ REST / WebSockets
+                                 │ REST (fetch)
                                  ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                        BACKEND SERVICES                         │
-│   Next.js under app/api/*                                                   │
-│   • Better Auth                │ • Tile Matrix Serializer       │
-│   • Stripe Webhook Handler     │ • Quadtree Map Engine          │
+│   Next.js route handlers under src/app/api/*                    │
+│   • better-auth (email + session)  │ • Tile Matrix Serializer   │
+│   • Stripe Webhook Handler         │ • Catalog Index (in-mem)   │
 └────────────────┬───────────────────────────────┬────────────────┘
                  │                               │
                  ▼                               ▼
 ┌───────────────────────────────┐ ┌───────────────────────────────┐
 │      DATABASE & STORAGE       │ │        CACHE & RENDERS        │
-│ Supabase (PostGIS / Data)     │ │ Cloudflare R2                 │
-│ • Users, Stars, Tile Matrices │ │ • Static Map Tile Snapshots   │
-│ Redis                         │ │ • Dynamic CDN Caching         │
-│ • Plot Locks & Sessions       │ │                               │
+│ Supabase Postgres             │ │ Cloudflare R2                 │
+│ • users (better-auth), stars, │ │ • Plot PNG thumbnails         │
+│   plots, stripe_events        │ │ • CDN-fronted static assets   │
+│ Redis                         │ │                               │
+│ • Reservation locks (5 min)   │ │                               │
 └───────────────────────────────┘ └───────────────────────────────┘
 ```
 
 ### Stack Breakdown
 
-- **Frontend Framework:** Next.js (React), TypeScript, Tailwind CSS.
-- **Canvas / Rendering Engine:** Three for the star map rendering engine.
-- **Backend Runtime:** Node.js (TypeScript).
+- **Frontend Framework:** Next.js 16 (App Router), React 19, TypeScript strict, Tailwind CSS v4.
+- **Canvas / Rendering Engine:** **PixiJS** for both the star map and the tile editor.
+- **Backend Runtime:** Next.js route handlers under `src/app/api/*` (no separate Node service).
+- **Auth:** **better-auth** — owns the `user`/`session`/`account` tables per its schema.
 - **Payment Gateway:** Stripe Checkout API & Webhook Service.
-- **Database Layer:** Supabase (for relational metadata and spatial indices) + Redis (for instant plot reservation locking).
+- **Database Layer:** Supabase Postgres (relational metadata; plain btree indexes — no PostGIS needed for 2D catalog claims) + Redis (reservation locks).
+- **Object Storage:** Cloudflare R2 (plot PNG thumbnails, CDN-fronted).
+- **Thumbnail Renderer:** `@napi-rs/canvas` invoked from a background task triggered by `PUT /api/plots/:star_id`.
 
 ---
 
@@ -146,14 +159,17 @@ To prevent race conditions where multiple users attempt to buy the same coordina
 
 ### 6.1 Galaxy Canvas Map
 
-- **Pan & Zoom:** Smooth scrolling infinite 3D canvas with level-of-detail (LOD) rendering.
+- **Pan & Zoom:** Smooth 2D pan/zoom viewport (PixiJS) with level-of-detail (LOD) rendering. The catalog `z` field may be used as a subtle parallax/depth hint but is not queryable.
 - **Grid View Modes:**
   - _High Zoom:_ Shows individual pixel structures, animated blocks, and star glow.
   - _Low Zoom:_ Merges structures into glowing constellation nodes for performance optimization.
-- **Star Point Data:** The star data is currently in the following files:
-  - _src/lib/galaxy/bsc5p_3d.json_ star coordinates
-  - _src/lib/galaxy/bsc5p_name.json_ additional names
-  - _src/lib/galaxy/bsc5p_spectral_extra.json_ addition spectral information including color
+- **Star Point Data:** Shipped under `src/lib/galaxy/`:
+  - `bsc5p_3d.json` — star coordinates (`x`, `y`, `z` in parsecs), luminosity, colour.
+  - `bsc5p_names.json` — additional names.
+  - `bsc5p_spectral_extra.json` — spectral information including cartoony glow colour.
+  - `catalog.json` — merged view produced by `scripts/build-catalog.mjs` (see that script's `SOURCES` config to change what's included). This is what runtime code should load.
+
+  > Note: the upstream BSC5P dataset also ships a `bsc5p_radec.json` (right-ascension/declination form). It is **not** included here; ignore the `bsc5p_radec` references in the key table below.
 
 #### 6.2 Star Point Data - JSON keys and additional information
 
@@ -161,17 +177,16 @@ Because this catalog primarily targets video games, things are keep small for fa
 
 The table below describes what each of these keys mean, and lists the files that use them.
 
-| Key | Type | Symbol | Used by | Description  
-| `i` | number, string | -- | `bsc5p_radec` `bsc5p_3d` `bsc5p_names` `bsc5p_spectral_extra` | Original BSC5P line ID, or 'Custom [n]' if added via the amendments mechanism. Used to link stars between files. |
-| `n` | string | -- | `bsc5p_radec` `bsc5p_3d` | A single name given to star. Additional known names for each star stored in [bsc5p_names.json](catalogs/bsc5p_names.json). |
-| `p` | number | `pc` | `bsc5p_radec` `bsc5p_3d` | Distance in parsecs, ignoring uncertainty. 1 parsec ≈ 3.26 light-years. |
-| `r` | number | `α` | `bsc5p_radec` | Right ascension in **radians**. |
-| `d` | number | `δ` | `bsc5p_radec` | Declination in **radians**. |
-| `x` | number | -- | `bsc5p_3d` | `x` coordinate approximation in parsecs. |
-| `y` | number | -- | `bsc5p_3d` | `y` coordinate approximation in parsecs. |
-| `z` | number | -- | `bsc5p_3d` | `z` coordinate approximation in parsecs. |
-| `N` | number | `L☉` | `bsc5p_radec` `bsc5p_3d` | Naively calculated luminosity. This does not take dust and other obstruction into account, and can vary several orders of magnitude from real data. This is however still very useful, because being calculated directly from perceived brightness and distance, it gives visualisation software a highly consistent base for realistic-looking 3D calculations. This value may therefore be thought of more as a custom brightness-distance unit than real luminosity. The intended use of this value is generating star size and size falloff based on distance from the software camera (see [Inverse Square Law of Brightness](http://www.astronomy.ohio-state.edu/~pogge/Ast162/Unit1/bright.html)). |
-| `K` | vector3 | `K` | `bsc5p_radec` `bsc5p_3d` | Colour of star approximated from star temperature in kelvin (AKA blackbody temperature), converted to RGB. A lot of effort and research has gone into estimating this as physically accurately as humanly possible (while keeping in mind it's still an approximation nonetheless, and will vary by star class and observational quality). |
+| Key | Type           | Symbol | Used by                                         | Description                                                                                                                                                                           |
+| :-- | :------------- | :----- | :---------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `i` | number, string | --     | `bsc5p_3d` `bsc5p_names` `bsc5p_spectral_extra` | Original BSC5P line ID, or 'Custom [n]' if added via the amendments mechanism. Used to link stars between files. This is the canonical **claim identity** (`stars.catalog_id`).       |
+| `n` | string         | --     | `bsc5p_3d`                                      | A single name given to star. Additional known names for each star stored in `bsc5p_names.json`.                                                                                       |
+| `p` | number         | `pc`   | `bsc5p_3d`                                      | Distance in parsecs, ignoring uncertainty. 1 parsec ≈ 3.26 light-years.                                                                                                               |
+| `x` | number         | --     | `bsc5p_3d`                                      | `x` coordinate approximation in parsecs. Used for 2D projection and tier computation.                                                                                                 |
+| `y` | number         | --     | `bsc5p_3d`                                      | `y` coordinate approximation in parsecs. Used for 2D projection and tier computation.                                                                                                 |
+| `z` | number         | --     | `bsc5p_3d`                                      | `z` coordinate approximation in parsecs. Visual/parallax only — not used for queries or tiering.                                                                                      |
+| `N` | number         | `L☉`   | `bsc5p_3d`                                      | Naively calculated luminosity. Used for star size / brightness falloff (see [Inverse Square Law of Brightness](http://www.astronomy.ohio-state.edu/~pogge/Ast162/Unit1/bright.html)). |
+| `K` | vector3        | `K`    | `bsc5p_3d`                                      | Colour of star approximated from star temperature (blackbody) converted to RGB.                                                                                                       |
 
 **Spectral information**
 
@@ -194,7 +209,7 @@ Below follows extra spectral information only found in the `bsc5p_spectral_extra
 
 ### 6.3 2D Tile Builder Engine
 
-- **Grid Constraints:** Fixed 32 times 32 grid cells per plot (Expandable to 64 times 64 via upgrade).
+- **Grid Constraints:** Fixed $32 \times 32$ grid cells per plot (expandable to $64 \times 64$ via Mega-Plot upsell — `plots.expanded = true`).
 - **Editing Suite Tools:**
   - **Pencil / Tile Brush:** Single-tile or multi-tile placement.
   - **Eraser:** Clears tile cell back to transparent background.
@@ -207,16 +222,17 @@ Below follows extra spectral information only found in the `bsc5p_spectral_extra
   2. _Decorations:_ Retro furniture, alien flora, space antennas, structural pipes.
   3. _Lighting / Neon:_ Glowing neon tubes, flashing alert lights, spotlights.
   4. _Special:_ Animated thrusters, energy fields, particle emitters.
+- **Palette source of truth:** A static TypeScript module at `src/lib/tiles/palette.ts` maps each `tile_id` (integer) to `{ sprite, category, minTier }`. `tile_data` in the database stores only integer tile IDs; sprites and tier-gating rules are resolved client- and server-side from this module. Server-side validation on `PUT /api/plots/:star_id` rejects tile IDs that exceed the plot's tier entitlement.
 
 ### 6.4 Social & Inspect Features
 
 - **Star Information Drawer:** Clicking an occupied star opens a slide-over modal containing:
   - A graphical ring should show around the star.
-  - Star Name and Exact Coordinates $(X, Y, Z)$.
+  - Star Name and Coordinates $(X, Y)$ (parsecs).
   - Dedication Message & Owner Identifier.
   - Rendered high-res pixel art thumbnail preview.
   - Action buttons: "Copy Direct Link", "Edit Plot" (if owner), "Visit External Website" (Prime Tier).
-- **Deep Linking System:** Share URLs structured as `https://starbuilder.app/star?x=120&y=-45` that automatically pan and focus the galaxy map view on the target star.
+- **Deep Linking System:** Share URLs structured as `https://starbuilder.app/star?x=120&y=-45`. On load, the client snaps to the nearest catalog star to `(x, y)` and pans the viewport to it. (Direct `?catalog_id=` links are also supported for exact addressing.)
 
 ---
 
@@ -224,41 +240,42 @@ Below follows extra spectral information only found in the `bsc5p_spectral_extra
 
 ### 7.1 Entity Relationship Diagram (Conceptual)
 
-`users` **1 ─── <** `stars` **1 ─── 1** `plots`
+`user` **1 ─── <** `stars` **1 ─── 1** `plots`
 
 ### 7.2 Table Schemas
 
 #### `user`
 
-Refer to the Better Auth docs
+Managed by **better-auth** — see the better-auth schema for `user`, `session`, `account`, and `verification` tables. Application code references `user.id` from `stars.user_id`. If additional profile fields (e.g. `username`) are needed, add them via better-auth's `additionalFields` config rather than a parallel table.
 
 #### `stars`
 
-| Field Name               | Type        | Constraints                        | Description               |
-| :----------------------- | :---------- | :--------------------------------- | :------------------------ |
-| `id`                     | integer     | primary key                        | Unique star identifier    |
-| `user_id`                | uuid        | references auth.users (id)         | Star owner reference      |
-| `coord_x`                | integer     | not null                           | Grid X coordinate         |
-| `coord_y`                | integer     | not null                           | Grid Y coordinate         |
-| `star_name`              | text        | not null                           | Custom star title         |
-| `tier`                   | enum        | 'STANDARD', 'PRIME'                | Pricing tier category     |
-| `status`                 | enum        | 'AVAILABLE', 'RESERVED', 'CLAIMED' | Plot reservation state    |
-| `reservation_expires_at` | timestamptz | default null                       | Expiry timestamp for lock |
-| `stripe_session_id`      | text        | default null                       | Active Stripe checkout ID |
-| `stripe_payment_id`      | text        | default null                       | Confirmed charge ID       |
-| `created_at`             | timestamptz | default now() not null             | Registration timestamp    |
+Defined in src/supabase/migration/00000000000000_schema.sql
 
 #### `plots`
 
-| Field Name      | Type         | Constraints                            | Description                                           |
-| :-------------- | :----------- | :------------------------------------- | :---------------------------------------------------- |
-| `id`            | UUID         | PRIMARY KEY, DEFAULT gen_random_uuid() | Unique plot identifier                                |
-| `star_id`       | UUID         | FOREIGN KEY -> stars(id), UNIQUE       | Associated star reference                             |
-| `width`         | INTEGER      | DEFAULT 32, NOT NULL                   | Grid width in cells                                   |
-| `height`        | INTEGER      | DEFAULT 32, NOT NULL                   | Grid height in cells                                  |
-| `tile_data`     | JSONB        | NOT NULL                               | Serialized 32x32 matrix encoding tile IDs & rotations |
-| `thumbnail_url` | VARCHAR(512) | NULLABLE                               | CDN link to generated preview image                   |
-| `updated_at`    | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP              | Last tile update timestamp                            |
+Not yet finalized but inialial suggested schema may look like this. TBD.
+
+| Field Name      | Type         | Constraints                            | Description                                                                                               |
+| :-------------- | :----------- | :------------------------------------- | :-------------------------------------------------------------------------------------------------------- |
+| `id`            | UUID         | PRIMARY KEY, DEFAULT gen_random_uuid() | Unique plot identifier                                                                                    |
+| `star_id`       | UUID         | FOREIGN KEY -> stars(id), UNIQUE       | Associated star reference                                                                                 |
+| `expanded`      | BOOLEAN      | NOT NULL, DEFAULT false                | true = Mega-Plot ($64\times64$); false = standard ($32\times32$). `width`/`height` are derived from this. |
+| `tile_data`     | JSONB        | NOT NULL                               | Serialized tile matrix (integer tile IDs; rotations encoded per palette)                                  |
+| `thumbnail_url` | VARCHAR(512) | NULLABLE                               | R2 URL for generated PNG preview                                                                          |
+| `updated_at`    | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP              | Last tile update timestamp                                                                                |
+
+#### `stripe_events`
+
+Not yet finalized but inialial suggested schema may look like this. TBD.
+
+Idempotency ledger for Stripe webhook deliveries.
+
+| Field Name     | Type         | Constraints               | Description                       |
+| :------------- | :----------- | :------------------------ | :-------------------------------- |
+| `event_id`     | VARCHAR(255) | PRIMARY KEY               | Stripe `event.id`                 |
+| `type`         | VARCHAR(100) | NOT NULL                  | e.g. `checkout.session.completed` |
+| `processed_at` | TIMESTAMP    | DEFAULT CURRENT_TIMESTAMP | First-seen timestamp              |
 
 ---
 
@@ -267,53 +284,54 @@ Refer to the Better Auth docs
 ### 8.1 Checkout & Payment Endpoints
 
 - `POST /api/checkout/reserve`
-  - **Request Body:** `{ coord_x: int, coord_y: int, star_name: string, dedication_text: string }`
+  - **Request Body:** `{ catalog_id: string, star_name: string, dedication_text: string, mega_plot?: boolean }`
   - **Response:** `{ checkout_url: string, expires_at: timestamp }`
-  - **Logic:** Checks availability, sets 5-minute Redis lock, creates Stripe Session, returns checkout URL.
+  - **Logic:** Resolves `catalog_id` in the in-memory catalog index, computes tier from radius, checks availability (no `stars` row, no Redis lock), takes a 5-minute Redis lock, creates a Stripe Session with the metadata above, returns checkout URL.
 
 - `POST /api/webhooks/stripe`
   - **Headers:** `Stripe-Signature`
-  - **Event Handling:** `checkout.session.completed`
-  - **Logic:** Validates signature, verifies payment status, updates `stars.status` to `CLAIMED`, provisions empty 32x32 `plots` record, sends confirmation email.
+  - **Event Handling:** `checkout.session.completed`, `checkout.session.expired`
+  - **Logic:** Reads raw request body via `await req.text()`, verifies signature, dedupes against `stripe_events`, then: on `completed` inserts `stars` (`status = CLAIMED`) + `plots` rows and releases the Redis lock; on `expired` releases the Redis lock. Sends confirmation email on `completed`.
 
 ### 8.2 Tile Matrix & Canvas Endpoints
 
 - `GET /api/map/chunks`
-  - **Query Params:** `min_x`, `max_x`, `min_y`, `max_y`
-  - **Response:** Array of occupied stars and thumbnail URLs within viewport bounds.
+  - **Query Params:** `min_x`, `max_x`, `min_y`, `max_y` (parsecs)
+  - **Response:** Array of occupied stars (id, catalog_id, coord_x, coord_y, tier, star_name, thumbnail_url) within viewport bounds.
 
 - `GET /api/plots/:star_id`
   - **Response:** Full `tile_data` JSON structure and metadata for editor loading.
 
 - `PUT /api/plots/:star_id`
-  - **Authentication:** Required (Owner only)
+  - **Authentication:** Required (owner only, via better-auth session).
   - **Request Body:** `{ tile_data: JSONB }`
   - **Response:** `{ success: boolean, thumbnail_url: string }`
-  - **Logic:** Validates plot payload size, saves matrix to DB, triggers background job to render PNG thumbnail to S3.
+  - **Logic:** Validates payload size and tile-ID tier entitlement (per `src/lib/tiles/palette.ts`), saves matrix to DB, enqueues a background task that renders a PNG via `@napi-rs/canvas` and uploads it to Cloudflare R2.
 
 ---
 
 ## 9. Development Milestones & Roadmap
 
 ```
-Phase 1: Infinite Galaxy Map & Spatial Database (Weeks 4-6)
- ├─ Implement 3D pan/zoom viewport map
- ├─ Set up PostgreSQL database, spatial indexing, and backend APIs
- ├─ Real-time rendering of claimed star plots on main map
- └─ Each star clickable, rendering a ring around the selected star and the name and $(X, Y, Z)$ should be displayed in an overlay in the bottom left.
-
-Phase 2: Core Tile Builder Engine (Weeks 1-3)
+Phase 1: Core Tile Builder Engine (Weeks 1-3)
  ├─ Build 32x32 canvas grid editor in React/PixiJS
  ├─ Implement draw, erase, eyedropper, and tile palette selector
  └─ Local state serialization testing
 
+Phase 2: Galaxy Map & Spatial Database (Weeks 4-6)
+ ├─ Implement 2D pan/zoom PixiJS viewport with LOD
+ ├─ Load BSC5P catalog, project x/y, compute radial tier at query time
+ ├─ Set up Supabase schema (stars, plots, stripe_events), map/chunks API
+ ├─ Real-time rendering of claimed star plots on main map
+ └─ Each star clickable, rendering a ring around the selected star and the name and $(X, Y)$ displayed in an overlay in the bottom left.
+
 Phase 3: Stripe Payments & Lock Engine (Weeks 7-9)
  ├─ Redis coordinate lock mechanism (5-minute expiration)
- ├─ Stripe Checkout integration & Webhook handler implementation
- └─ Account authentication (Clerk/Auth0) and user management
+ ├─ Stripe Checkout integration & idempotent webhook handler
+ └─ better-auth wire-up and owner-gated editor access
 
 Phase 4: Optimization, CDN Renders & Social Polish (Weeks 10-12)
- ├─ Automated headless/canvas PNG thumbnail generator for S3 upload
+ ├─ @napi-rs/canvas PNG thumbnail generator → Cloudflare R2 upload
  ├─ Deep-linking URL coordinate navigation system
  └─ Sound effects, UI animations, and launch prep
 ```
