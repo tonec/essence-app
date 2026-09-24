@@ -234,7 +234,37 @@ Below follows extra spectral information only found in the `bsc5p_spectral_extra
   - Action buttons: "Copy Direct Link", "Edit Plot" (if owner), "Visit External Website" (Prime Tier).
 - **Deep Linking System:** Share URLs structured as `https://starbuilder.app/star?x=120&y=-45`. On load, the client snaps to the nearest catalog star to `(x, y)` and pans the viewport to it. (Direct `?catalog_id=` links are also supported for exact addressing.)
 
----
+### 6.5 How the star map should be generated from the star catalog data
+
+For a zoomable "Night Sky View" centered on a specific point in the sky, the absolute best method is the Gnomonic Projection.
+While a Stereographic projection is excellent for viewing an entire hemisphere at once, a Gnomonic projection perfectly mimics looking through a camera lens or a telescope. When you change the focal length (zoom in and out), the geometry stays perfectly uniform without bending constellations at the edges of your view.
+Alternatively, if you want a projection that doesn't distort shapes near the edges when zoomed far out, the Stereographic Projection is your best secondary choice.
+Here is how to structure your math to handle both the celestial conversion and the dynamic zooming.
+
+Step 1: Convert XYZ to Angles (Right Ascension & Declination)
+First, turn your raw Cartesian 3D coordinates into spherical coordinates.
+
+1.  Distance ($r$): $\sqrt{X^2 + Y^2 + Z^2}$
+2.  Declination ($\delta$): $\arcsin(Z / r)$
+3.  Right Ascension ($\alpha$): $\operatorname{atan2}(Y, X)$
+
+Step 2: Center the View (Camera Target)
+Because the user is looking at a specific patch of sky and zooming in, you must define where the "camera" is pointing. Let this center point be $(\alpha_0, \delta_0)$.
+When the user pans across the night sky, you will update $\alpha_0$ and $\delta_0$.
+
+Step 3: Compute the 2D Projection with Zoom
+Use the Gnomonic math combined with a scale factor ($R$) to act as your zoom controller.
+First, calculate the angular distance component ($c$) between the star and the center of your screen:
+$$\cos(c) = \sin(\delta_0)\sin(\delta) + \cos(\delta_0)\cos(\delta)\cos(\alpha - \alpha_0)$$
+If $\cos(c) \le 0$, the star is more than 90° away from the center point (behind the local horizon of your screen view) and should not be rendered.
+If it is visible, calculate your 2D $(u, v)$ coordinates:
+$$u = \frac{R \cdot \cos(\delta)\sin(\alpha - \alpha_0)}{\cos(c)}$$
+$$v = \frac{R \cdot \big(\cos(\delta_0)\sin(\delta) - \sin(\delta_0)\cos(\delta)\cos(\alpha - \alpha_0)\big)}{\cos(c)}$$
+
+How to Handle the Zoom Factor ($R$)
+
+- Zooming In: Increase the value of $R$. This stretches the coordinates outward, scattering the stars further apart and magnifying the center patch of sky.
+- Zooming Out: Decrease the value of $R$. This pulls coordinates closer to the origin $(0,0)$, packing more stars onto the screen.
 
 ## 7. Data Models & Database Schema
 
