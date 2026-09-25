@@ -35,18 +35,38 @@ Per `AGENTS.md`: this is Next.js 16, which has breaking changes from what's in t
 
 When touching any third-party library, framework, SDK, or CLI, look up current docs via the **context7** MCP (`resolve-library-id` → `query-docs`) before writing code — training data may be stale. Prefer this over web search for library docs.
 
-### Planned app route structure
+## Project Rules & Architecture
+
+### Component Directory Structure
+All new frontend components must strictly adhere to the following directory structure. Never create a standalone component file directly inside `components/`.
+
+#### Directory Blueprint
 
 ```
-app/
-  layout.tsx          # root layout (Geist fonts, TailwindCSS)
-  page.tsx            # landing / redirect
-  dashboard/          # star field page
-  api/
-    checkout/reserve  # Checks availability, sets 5-minute Redis lock, creates Stripe Session, returns checkout URL.
-    webhooks/stripe   # Validates signature, verifies payment status
-    plots/:star_id    # Full `tile_data` JSON structure and metadata for editor loading
+app/                            # Next.js app routes
+components/                     # See Components directory architecture and rules below
+  [ComponentName]/
+    index.ts                    # Clean export of the component
+    [ComponentName].tsx         # Main component implementation
+    [ComponentName].styles.ts   # Styled components or styling definitions
+    __tests__/                  # Test directory
+      [ComponentName].test.tsx
+lib/                            # Files related to third party services and utilities like Supabase
+  [library-name]/
+    index.ts                    # Clean export of the library files
+    [library-files].*           # Main implementation and any additional files related to the library and the implemantion specifically
+services/                       # Business logic and helper files organized into major themes like 'galaxy', 'authentication', 'user'
+  [service-name]/
+    index.ts                    # Clean export of the service files
+    [service-files].*           # Main implementation and any additional files related to the service and the implemantion specifically
+utils/                          # Generic utility functions used throughout the app
+  [utility-function-name].ts.   # Single function per file. No index file needed
 ```
+
+#### Architecture Rules
+- Every component folder *must* contain an `index.ts` file that uses named exports.
+- Do not mix business logic with presentation. Keep state management in hooks or parent containers.
+- Always generate the corresponding `.test.tsx` file immediately inside the `__tests__/` directory when generating a new component.
 
 ## Agent skills
 

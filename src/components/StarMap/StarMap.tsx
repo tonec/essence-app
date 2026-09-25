@@ -11,9 +11,9 @@ import { attachMapInput } from "@/services/galaxy/star-map/input";
 import { StarRenderer } from "@/services/galaxy/star-map/renderer";
 import type { Star } from "@/services/galaxy/star-map/types";
 import type { ClaimedStar } from "@/services/galaxy/types";
-import { LoadingOverlay } from "./star-map/LoadingOverlay";
-import { ResetViewButton } from "./star-map/ResetViewButton";
-import { StarInfoDrawer } from "./star-map/StarInfoDrawer";
+import { LoadingOverlay } from "../LoadingOverlay";
+import { ResetViewButton } from "../ResetViewButton";
+import { StarInfoDrawer } from "../StarInfoDrawer";
 
 export function StarMap() {
   const hostRef = useRef<HTMLDivElement | null>(null);
