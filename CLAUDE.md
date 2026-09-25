@@ -35,18 +35,29 @@ Per `AGENTS.md`: this is Next.js 16, which has breaking changes from what's in t
 
 When touching any third-party library, framework, SDK, or CLI, look up current docs via the **context7** MCP (`resolve-library-id` → `query-docs`) before writing code — training data may be stale. Prefer this over web search for library docs.
 
-### Planned route structure
+### Planned app route structure
 
 ```
 app/
   layout.tsx          # root layout (Geist fonts, TailwindCSS)
   page.tsx            # landing / redirect
-  login/              # better-auth sign-in page
-  register/           # better-auth sign-up page
   dashboard/          # star field page
   api/
     checkout/reserve  # Checks availability, sets 5-minute Redis lock, creates Stripe Session, returns checkout URL.
     webhooks/stripe   # Validates signature, verifies payment status
-    map/chunks        # Array of occupied stars and thumbnail URLs within viewport bounds
     plots/:star_id    # Full `tile_data` JSON structure and metadata for editor loading
 ```
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in GitHub Issues on `tonec/essence-app` (via `gh`). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default canonical labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: root `CONTEXT.md` + `docs/adr/`. See `docs/agents/domain.md`.
