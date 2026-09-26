@@ -1,11 +1,10 @@
 import { xyzToRaDec } from "@/services/galaxy/projection";
 import type { CatalogStar, ClaimedStar } from "@/services/galaxy/types";
-import { GLOW_TEXTURE_RADIUS } from "./constants";
+import { GLOW_TEXTURE_RADIUS, STAR_MAX_RADIUS_PX } from "./constants";
 import type { Star } from "./types";
 
 const DEFAULT_APPARENT_MAG = 6;
 const MIN_RADIUS = 0.5;
-const MAX_RADIUS = 5;
 
 export async function loadCatalog(): Promise<CatalogStar[]> {
   const res = await fetch("/catalog.json");
@@ -35,7 +34,7 @@ export function prepareStars(catalog: CatalogStar[]): {
     const b = typeof s.b === "number" ? s.b : DEFAULT_APPARENT_MAG;
     // Star's on-screen radius at INITIAL_SCALE, in logical pixels.
     // Bright stars (low b) get radius 5; dim ones bottom out at 0.5.
-    const screenRadius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, 6 - b));
+    const screenRadius = Math.max(MIN_RADIUS, Math.min(STAR_MAX_RADIUS_PX, 6 - b));
     return {
       ...s,
       ra,

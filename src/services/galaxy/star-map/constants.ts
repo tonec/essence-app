@@ -7,6 +7,12 @@ export const MAX_SCALE = 10000000;
 // a star this big; per-star brightness and per-frame zoom scale multiply it.
 export const GLOW_TEXTURE_RADIUS = 16;
 
+// Cap on the glow texture's edge in physical pixels when re-baked for deep zoom.
+export const GLOW_MAX_TEXTURE_PX = 4096;
+
+// Largest star radius at INITIAL_SCALE, in logical pixels (brightest stars).
+export const STAR_MAX_RADIUS_PX = 5;
+
 // Star tint fallbacks used for CLAIMED rows — real stars use their catalog K.
 export const PRIME_STAR_COLOR = 0xffd166;
 export const STANDARD_STAR_COLOR = 0x8ecae6;

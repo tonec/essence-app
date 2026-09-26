@@ -5,7 +5,6 @@ import type { Camera } from "@/services/galaxy/projection";
 import { animateCamera } from "@/services/galaxy/star-map/camera";
 import { BACKGROUND_COLOR, INITIAL_SCALE } from "@/services/galaxy/star-map/constants";
 import { loadCatalog, loadClaimedStars, prepareStars } from "@/services/galaxy/star-map/data";
-import { createGlowTexture } from "@/services/galaxy/star-map/glow-texture";
 import { pickStarAt } from "@/services/galaxy/star-map/hit-test";
 import { attachMapInput } from "@/services/galaxy/star-map/input";
 import { StarRenderer } from "@/services/galaxy/star-map/renderer";
@@ -58,8 +57,7 @@ export function StarMap() {
       }
       host.appendChild(app.canvas);
 
-      const glowTexture = createGlowTexture(app.renderer, () => new Graphics());
-      const renderer = new StarRenderer(app, stars, glowTexture, {
+      const renderer = new StarRenderer(app, stars, {
         Container,
         Graphics,
         Sprite,

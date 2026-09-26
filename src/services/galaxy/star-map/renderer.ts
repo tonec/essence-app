@@ -17,6 +17,7 @@ import {
   SELECTION_RING_OFFSET_PX,
   STANDARD_STAR_COLOR,
 } from "./constants";
+import { createGlowTexture, glowResolutionFor } from "./glow-texture";
 import type { ProjectedStar, Star } from "./types";
 
 type PixiFactories = {
@@ -33,17 +34,16 @@ export class StarRenderer {
   private readonly sprites: SpriteType[];
   private readonly ringGfx: GraphicsType;
   private readonly selectionGfx: GraphicsType;
-  private readonly glowTexture: Texture;
+  private readonly makeGraphics: () => GraphicsType;
+  private glowTexture: Texture;
+  private glowResolution: number;
 
-  constructor(
-    app: Application,
-    stars: readonly Star[],
-    glowTexture: Texture,
-    factories: PixiFactories
-  ) {
+  constructor(app: Application, stars: readonly Star[], factories: PixiFactories) {
     this.app = app;
     this.stars = stars;
-    this.glowTexture = glowTexture;
+    this.makeGraphics = () => new factories.Graphics();
+    this.glowResolution = glowResolutionFor(INITIAL_SCALE, app.renderer.resolution);
+    this.glowTexture = createGlowTexture(app.renderer, this.makeGraphics, this.glowResolution);
 
     const layer = new factories.Container();
     app.stage.addChild(layer);
@@ -57,7 +57,7 @@ export class StarRenderer {
     this.sprites = new Array(stars.length);
     for (let idx = 0; idx < stars.length; idx++) {
       const s = stars[idx];
-      const sprite = new factories.Sprite(glowTexture);
+      const sprite = new factories.Sprite(this.glowTexture);
       sprite.anchor.set(0.5);
       sprite.tint = rgbToHex(s.K.r, s.K.g, s.K.b);
       sprite.visible = false;
@@ -75,6 +75,8 @@ export class StarRenderer {
     claimedById: ReadonlyMap<number, ClaimedStar>,
     selectedId: number | null
   ): void {
+    this.updateGlowResolution(camera.scale);
+
     const w = this.app.screen.width;
     const h = this.app.screen.height;
     const cx = w / 2;
@@ -132,6 +134,19 @@ export class StarRenderer {
 
       this.projected.push({ id: s.i, x: sx, y: sy, r });
     }
+  }
+
+  // Re-bake the glow texture when zoom crosses a resolution threshold so
+  // stars stay sharp at deep zoom without re-rendering it every frame.
+  private updateGlowResolution(scale: number): void {
+    const resolution = glowResolutionFor(scale, this.app.renderer.resolution);
+    if (resolution === this.glowResolution) return;
+
+    const previous = this.glowTexture;
+    this.glowTexture = createGlowTexture(this.app.renderer, this.makeGraphics, resolution);
+    this.glowResolution = resolution;
+    for (const sprite of this.sprites) sprite.texture = this.glowTexture;
+    previous.destroy(true);
   }
 
   destroy(): void {
