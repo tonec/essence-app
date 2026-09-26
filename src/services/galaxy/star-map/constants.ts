@@ -41,7 +41,7 @@ export const SELECTION_RING_OFFSET_PX = 8;
 // Star close-ups. Scales are camera.scale thresholds; the exit scale is
 // lower than the enter scale so close-ups don't flicker at the boundary.
 export const FOCUS_ENTER_SCALE = 150000;
-export const FOCUS_EXIT_SCALE = FOCUS_ENTER_SCALE - 50000;
+export const FOCUS_EXIT_SCALE = FOCUS_ENTER_SCALE - 5000;
 // Cap on simultaneous close-ups (largest on-screen stars win).
 export const FOCUS_MAX_STARS = 8;
 export const FOCUS_FADE_MS = 400;
