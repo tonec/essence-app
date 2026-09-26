@@ -127,7 +127,7 @@ export class StarRenderer {
       if (selectedId === s.i) {
         this.selectionGfx
           .circle(sx, sy, r + SELECTION_RING_OFFSET_PX)
-          .stroke({ color: SELECTION_RING_COLOR, width: 2, alpha: 0.9 });
+          .stroke({ color: SELECTION_RING_COLOR, width: 1, alpha: 0.5 });
       }
 
       this.projected.push({ id: s.i, x: sx, y: sy, r });

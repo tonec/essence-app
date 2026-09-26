@@ -1,7 +1,7 @@
 // Camera scale, in pixels per radian at the tangent point.
 export const INITIAL_SCALE = 400;
-export const MIN_SCALE = 50;
-export const MAX_SCALE = 20000;
+export const MIN_SCALE = 400;
+export const MAX_SCALE = 10000000;
 
 // Radius of the shared glow texture in logical pixels. Sprite scale=1 renders
 // a star this big; per-star brightness and per-frame zoom scale multiply it.
