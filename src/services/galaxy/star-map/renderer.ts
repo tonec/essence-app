@@ -1,6 +1,5 @@
 import type {
   Application,
-  Container as ContainerType,
   Graphics as GraphicsType,
   Sprite as SpriteType,
   Texture,
@@ -17,11 +16,12 @@ import {
   SELECTION_RING_OFFSET_PX,
   STANDARD_STAR_COLOR,
 } from "./constants";
+import { pickFocusedStars } from "./focus";
+import { FocusLayer, type FocusFactories } from "./focus-layer";
 import { createGlowTexture, glowResolutionFor } from "./glow-texture";
 import type { ProjectedStar, Star } from "./types";
 
-type PixiFactories = {
-  Container: new () => ContainerType;
+type PixiFactories = FocusFactories & {
   Graphics: new () => GraphicsType;
   Sprite: new (texture: Texture) => SpriteType;
 };
@@ -34,6 +34,13 @@ export class StarRenderer {
   private readonly sprites: SpriteType[];
   private readonly ringGfx: GraphicsType;
   private readonly selectionGfx: GraphicsType;
+  private readonly focusLayer: FocusLayer;
+  private readonly indexById: Map<number, number>;
+  private readonly focusedIdSet = new Set<number>();
+  // This frame's projections of stars held by the focus layer.
+  private readonly focusDisplayed = new Map<number, ProjectedStar>();
+  // Sprite indices currently crossfaded under the focus layer.
+  private readonly fadedIdxs = new Set<number>();
   private readonly makeGraphics: () => GraphicsType;
   private glowTexture: Texture;
   private glowResolution: number;
@@ -52,7 +59,10 @@ export class StarRenderer {
     starLayer.eventMode = "none";
     this.ringGfx = new factories.Graphics();
     this.selectionGfx = new factories.Graphics();
-    layer.addChild(starLayer, this.ringGfx, this.selectionGfx);
+    this.focusLayer = new FocusLayer(app, factories, () => this.applyFocusAlpha());
+    layer.addChild(starLayer, this.focusLayer.container, this.ringGfx, this.selectionGfx);
+
+    this.indexById = new Map(stars.map((s, idx) => [s.i, idx]));
 
     this.sprites = new Array(stars.length);
     for (let idx = 0; idx < stars.length; idx++) {
@@ -64,6 +74,11 @@ export class StarRenderer {
       starLayer.addChild(sprite);
       this.sprites[idx] = sprite;
     }
+  }
+
+  // Stars currently given a close-up (deep zoom, on screen).
+  get focusedIds(): ReadonlySet<number> {
+    return this.focusedIdSet;
   }
 
   resize(width: number, height: number): void {
@@ -89,6 +104,7 @@ export class StarRenderer {
     this.ringGfx.clear();
     this.selectionGfx.clear();
     this.projected.length = 0;
+    this.focusDisplayed.clear();
 
     for (let idx = 0; idx < this.stars.length; idx++) {
       const s = this.stars[idx];
@@ -132,8 +148,40 @@ export class StarRenderer {
           .stroke({ color: SELECTION_RING_COLOR, width: 1, alpha: 0.5 });
       }
 
-      this.projected.push({ id: s.i, x: sx, y: sy, r });
+      const projected = { id: s.i, x: sx, y: sy, r };
+      this.projected.push(projected);
+      if (this.focusLayer.has(s.i)) this.focusDisplayed.set(s.i, projected);
     }
+
+    this.updateFocus(camera.scale);
+  }
+
+  private updateFocus(scale: number): void {
+    const focused = pickFocusedStars(this.projected, this.app.screen, scale, this.focusedIdSet);
+    this.focusedIdSet.clear();
+    const targets = focused.map((ps) => {
+      this.focusedIdSet.add(ps.id);
+      return { ...ps, color: this.stars[this.indexById.get(ps.id)!].K };
+    });
+    this.focusLayer.update(targets, this.focusDisplayed);
+    this.applyFocusAlpha();
+  }
+
+  // Fade each close-up star's glow sprite out as its sun fades in, and
+  // restore sprites whose close-up has gone.
+  private applyFocusAlpha(): void {
+    const held = new Set<number>();
+    for (const id of this.focusLayer.ids()) {
+      const idx = this.indexById.get(id);
+      if (idx === undefined) continue;
+      held.add(idx);
+      this.sprites[idx].alpha = 1 - this.focusLayer.fadeOf(id);
+    }
+    for (const idx of this.fadedIdxs) {
+      if (!held.has(idx)) this.sprites[idx].alpha = 1;
+    }
+    this.fadedIdxs.clear();
+    for (const idx of held) this.fadedIdxs.add(idx);
   }
 
   // Re-bake the glow texture when zoom crosses a resolution threshold so
@@ -150,6 +198,7 @@ export class StarRenderer {
   }
 
   destroy(): void {
+    this.focusLayer.destroy();
     this.app.destroy(true, { children: true });
     this.glowTexture.destroy(true);
   }

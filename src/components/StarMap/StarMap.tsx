@@ -36,7 +36,7 @@ export function StarMap() {
       ]);
       if (cancelled) return;
 
-      const { Application, Container, Graphics, Sprite } = pixi;
+      const { Application, Container, Graphics, Mesh, MeshGeometry, Shader, Sprite } = pixi;
       const { stars, starsById } = prepareStars(catalog);
       const claimedMap = new Map(claimed.map((s) => [s.id, s]));
       setClaimedById(claimedMap);
@@ -60,6 +60,9 @@ export function StarMap() {
       const renderer = new StarRenderer(app, stars, {
         Container,
         Graphics,
+        Mesh,
+        MeshGeometry,
+        Shader,
         Sprite,
       });
 

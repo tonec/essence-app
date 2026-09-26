@@ -37,3 +37,16 @@ export const CAMERA_ANIMATION_MS = 700;
 // Ring adornment offsets in screen pixels.
 export const CLAIMED_RING_OFFSET_PX = 4;
 export const SELECTION_RING_OFFSET_PX = 8;
+
+// Star close-ups. Scales are camera.scale thresholds; the exit scale is
+// lower than the enter scale so close-ups don't flicker at the boundary.
+export const FOCUS_ENTER_SCALE = 150000;
+export const FOCUS_EXIT_SCALE = FOCUS_ENTER_SCALE - 50000;
+// Cap on simultaneous close-ups (largest on-screen stars win).
+export const FOCUS_MAX_STARS = 8;
+export const FOCUS_FADE_MS = 400;
+// Close-up quad half-size as a multiple of the star's on-screen radius, and
+// the surface disc's radius as a fraction of that half-size (disc ≈ 0.45 r,
+// roughly the glow sprite's bright core so the crossfade doesn't pop).
+export const FOCUS_CORONA_SCALE = 0.6;
+export const FOCUS_CORE_FRAC = 0.3;
