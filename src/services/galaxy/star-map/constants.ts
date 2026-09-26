@@ -50,3 +50,8 @@ export const FOCUS_FADE_MS = 400;
 // roughly the glow sprite's bright core so the crossfade doesn't pop).
 export const FOCUS_CORONA_SCALE = 0.6;
 export const FOCUS_CORE_FRAC = 0.3;
+
+// Dyson swarm around the selected star (close-up only). Panel half-size is a
+// fraction of the star's on-screen radius; orbit speed multiplies every ring.
+export const DYSON_PANEL_SIZE_FRAC = 0.035;
+export const DYSON_ORBIT_SPEED = 0.01;

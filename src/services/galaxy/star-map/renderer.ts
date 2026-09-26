@@ -16,6 +16,7 @@ import {
   SELECTION_RING_OFFSET_PX,
   STANDARD_STAR_COLOR,
 } from "./constants";
+import { DysonSwarm } from "./dyson-swarm";
 import { pickFocusedStars } from "./focus";
 import { FocusLayer, type FocusFactories } from "./focus-layer";
 import { createGlowTexture, glowResolutionFor } from "./glow-texture";
@@ -35,6 +36,7 @@ export class StarRenderer {
   private readonly ringGfx: GraphicsType;
   private readonly selectionGfx: GraphicsType;
   private readonly focusLayer: FocusLayer;
+  private readonly swarm: DysonSwarm;
   private readonly indexById: Map<number, number>;
   private readonly focusedIdSet = new Set<number>();
   // This frame's projections of stars held by the focus layer.
@@ -60,7 +62,15 @@ export class StarRenderer {
     this.ringGfx = new factories.Graphics();
     this.selectionGfx = new factories.Graphics();
     this.focusLayer = new FocusLayer(app, factories, () => this.applyFocusAlpha());
-    layer.addChild(starLayer, this.focusLayer.container, this.ringGfx, this.selectionGfx);
+    this.swarm = new DysonSwarm(app, this.makeGraphics, (id) => this.focusLayer.fadeOf(id));
+    layer.addChild(
+      starLayer,
+      this.swarm.backGfx,
+      this.focusLayer.container,
+      this.swarm.frontGfx,
+      this.ringGfx,
+      this.selectionGfx
+    );
 
     this.indexById = new Map(stars.map((s, idx) => [s.i, idx]));
 
@@ -142,7 +152,8 @@ export class StarRenderer {
           .stroke({ color: tint, width: 1, alpha: 0.6 });
       }
 
-      if (selectedId === s.i) {
+      // In close-up the Dyson swarm marks the selection instead of the ring.
+      if (selectedId === s.i && !this.focusLayer.has(s.i)) {
         this.selectionGfx
           .circle(sx, sy, r + SELECTION_RING_OFFSET_PX)
           .stroke({ color: SELECTION_RING_COLOR, width: 1, alpha: 0.5 });
@@ -154,6 +165,18 @@ export class StarRenderer {
     }
 
     this.updateFocus(camera.scale);
+    this.updateSwarm(selectedId);
+  }
+
+  // Dyson swarm around the selected star while its close-up is showing.
+  private updateSwarm(selectedId: number | null): void {
+    const projected = selectedId === null ? undefined : this.focusDisplayed.get(selectedId);
+    if (selectedId === null || !projected || !this.focusLayer.has(selectedId)) {
+      this.swarm.setTarget(null);
+      return;
+    }
+    const star = this.stars[this.indexById.get(selectedId)!];
+    this.swarm.setTarget({ ...projected, color: star.K });
   }
 
   private updateFocus(scale: number): void {
@@ -198,6 +221,7 @@ export class StarRenderer {
   }
 
   destroy(): void {
+    this.swarm.destroy();
     this.focusLayer.destroy();
     this.app.destroy(true, { children: true });
     this.glowTexture.destroy(true);
