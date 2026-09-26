@@ -40,6 +40,8 @@ When touching any third-party library, framework, SDK, or CLI, look up current d
 ### Component Directory Structure
 All new frontend components must strictly adhere to the following directory structure. Never create a standalone component file directly inside `components/`.
 
+Always use shadcn/ui components for all user interface elements instead of writing raw HTML or custom components. These should be installed into components/ui if the don't already exits.
+
 #### Directory Blueprint
 
 ```
@@ -51,6 +53,7 @@ components/                     # See Components directory architecture and rule
     [ComponentName].styles.ts   # Styled components or styling definitions
     __tests__/                  # Test directory
       [ComponentName].test.tsx
+  ui/                           # Generic shared shadcn/ui components
 lib/                            # Files related to third party services and utilities like Supabase
   [library-name]/
     index.ts                    # Clean export of the library files

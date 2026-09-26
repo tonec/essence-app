@@ -8,6 +8,9 @@
       "Bash(git mv *)"
     ]
   },
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ],
   "hooks": {
     "PostToolUse": [
       {
@@ -20,5 +23,6 @@
         ]
       }
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true
 }
