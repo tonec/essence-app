@@ -45,17 +45,18 @@ npm run sync-notion -- --prefer=local   # resolve conflicts using the repo versi
 npm run sync-notion -- --prefer=notion  # resolve conflicts using the Notion version
 ```
 
-Each run compares both sides against the last sync, which is recorded in `.notion-sync.json`. Commit that file so the sync works from any machine.
+Each run compares both sides against the last sync, which is recorded in `.notion-sync.json` along with a snapshot of each page's Notion markdown. Commit that file so the sync works from any machine.
 
 - **Changed only in the repo:** pushed to Notion.
-- **Changed only in Notion:** pulled into `specs/`. Review the result with `git diff` before committing.
+- **Changed only in Notion:** only the lines that changed in Notion are applied to the file in `specs/`, and the rest of the file stays exactly as written. Review the result with `git diff` before committing.
 - **Changed on both sides:** reported as a conflict and skipped. Re-run with `--prefer` to settle it. When there are conflicts, the command exits with a non-zero code.
 - **New on either side:** created on the other side. A new Notion page that has child pages becomes a folder.
 - **Deleted on either side:** reported but never propagated. The script never deletes anything.
 
 Notes:
 
-- Notion rewrites markdown in its own format, so pulled files can differ slightly in spacing, list markers and escaping.
+- Notion stores markdown in its own style. It drops the blank lines between blocks, drops the page's leading `#` heading, and changes emphasis and escaping. The repo files keep their own style, but lines edited or added in Notion come back in Notion's style (for example `*em*` rather than `_em_`).
+- `--prefer=notion` replaces the whole file with Notion's version, so the entire file comes back in Notion's style.
 - Relative links between spec files stay as plain markdown links in Notion.
 - The `[Feature Name] Spec` template page is ignored. To ignore other pages, add them to `IGNORED_TITLES` in `scripts/sync-notion.mjs`.
 
