@@ -6,7 +6,8 @@
       "Bash(node *)",
       "Bash(mkdir -p src/services)",
       "Bash(git mv *)"
-    ]
+    ],
+    "defaultMode": "plan"
   },
   "enabledMcpjsonServers": [
     "shadcn"

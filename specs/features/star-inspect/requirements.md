@@ -1,0 +1,7 @@
+- **Star Information Drawer:** Clicking an occupied star opens a slide-over modal containing:
+  - A graphical ring should show around the star.
+  - Star Name and BSC5P identifier.
+  - Dedication Message & Owner Identifier.
+  - Rendered high-res pixel art thumbnail preview.
+  - Action buttons: "Copy Direct Link", "Edit Plot" (if owner), "Visit External Website" (Prime Tier).
+- **Deep Linking System:** Share URLs structured as `https://starbuilder.app/star?id=<catalog_id>`. On load, the client looks up the star in `catalog.json`, computes its `(α, δ)`, and centers the camera on it. (Legacy `?x=&y=&z=` form may be accepted as a fallback for pasted parsec coords.)
