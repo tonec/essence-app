@@ -24,10 +24,11 @@ export function clampScale(scale: number): number {
 }
 
 // Small-angle pan: treat dx / dy in screen pixels as camera-axis-aligned
-// rotations, accounting for the RA convergence toward the poles.
+// rotations, accounting for the RA convergence toward the poles. Screen x runs
+// against RA (east is left), so +dx increases ra0.
 export function panBy(camera: Camera, dxPx: number, dyPx: number): void {
   const cosDec = Math.max(0.1, Math.cos(camera.dec0));
-  camera.ra0 = normalizeRa(camera.ra0 - dxPx / camera.scale / cosDec);
+  camera.ra0 = normalizeRa(camera.ra0 + dxPx / camera.scale / cosDec);
   camera.dec0 = clampDec(camera.dec0 + dyPx / camera.scale);
 }
 

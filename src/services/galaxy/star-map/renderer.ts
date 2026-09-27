@@ -124,7 +124,8 @@ export class StarRenderer {
         sprite.visible = false;
         continue;
       }
-      const sx = cx + p.u;
+      // Ground view: east is left, so screen x runs against u.
+      const sx = cx - p.u;
       const sy = cy - p.v;
       const r = s.hitRadius * zoomSizeFactor;
       const halo = r + haloExtra;

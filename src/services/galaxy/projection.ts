@@ -2,11 +2,17 @@
 
 export type RaDec = { ra: number; dec: number };
 
+// The BSC5P game catalog stores positions in a y-up style axis order:
+// equatorial (X, Y, Z) = catalog (z, -y, x), with +Z the north celestial
+// pole. Remap before applying the SPEC §6.5 formulas.
 export function xyzToRaDec(x: number, y: number, z: number): RaDec {
-  const r = Math.hypot(x, y, z);
+  const eqX = z;
+  const eqY = -y;
+  const eqZ = x;
+  const r = Math.hypot(eqX, eqY, eqZ);
   return {
-    dec: Math.asin(z / r),
-    ra: Math.atan2(y, x),
+    dec: Math.asin(eqZ / r),
+    ra: Math.atan2(eqY, eqX),
   };
 }
 

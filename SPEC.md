@@ -172,6 +172,8 @@ The `star_status` enum still defines `AVAILABLE`, but it's unused in practice: r
   - `catalog.json` — merged view produced by `scripts/build-catalog.mjs` (see that script's `SOURCES` config to change what's included). This is what runtime code should load. Ship as a static asset (gzipped is ~200 KB).
 
   > Note: the upstream BSC5P dataset also ships a `bsc5p_radec.json` (right-ascension/declination form). It is **not** included here; RA/Dec are computed at load time from the `x/y/z` fields (see §6.5 Step 1).
+  >
+  > Axis order: the catalog's `x/y/z` are not equatorial as-is. Equatorial `(X, Y, Z)` = catalog `(z, −y, x)`, with `+Z` the north celestial pole. Remap before applying §6.5 Step 1. The map is drawn as seen from the ground, with north up and east on the **left** (screen x runs opposite to the projected `u`).
 
 #### 6.2 Star Point Data - JSON keys and additional information
 

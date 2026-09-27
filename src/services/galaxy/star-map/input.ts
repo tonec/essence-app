@@ -51,7 +51,7 @@ export function attachMapInput(opts: MapInputOptions): () => void {
     const dy = e.clientY - dragStart.clientY;
     if (Math.abs(dx) + Math.abs(dy) > DRAG_THRESHOLD_PX) didDrag = true;
     const cosDec = Math.max(0.1, Math.cos(dragStart.dec0));
-    camera.ra0 = normalizeRa(dragStart.ra0 - dx / camera.scale / cosDec);
+    camera.ra0 = normalizeRa(dragStart.ra0 + dx / camera.scale / cosDec);
     camera.dec0 = clampDec(dragStart.dec0 + dy / camera.scale);
     onChange();
   };
@@ -72,7 +72,8 @@ export function attachMapInput(opts: MapInputOptions): () => void {
     if (s2 === s1) return;
     const rect = canvas.getBoundingClientRect();
     const screen = getScreen();
-    const uCursor = e.clientX - rect.left - screen.width / 2;
+    // Screen x runs against u (east is left); see renderer.
+    const uCursor = screen.width / 2 - (e.clientX - rect.left);
     const vCursor = screen.height / 2 - (e.clientY - rect.top);
     zoomToCursor(camera, uCursor, vCursor, s2);
     onChange();
