@@ -1,7 +1,7 @@
 // Camera scale, in pixels per radian at the tangent point.
 export const INITIAL_SCALE = 400;
 export const MIN_SCALE = 400;
-export const MAX_SCALE = 10000000;
+export const MAX_SCALE = 50000000;
 
 // Radius of the shared glow texture in logical pixels. Sprite scale=1 renders
 // a star this big; per-star brightness and per-frame zoom scale multiply it.
@@ -40,7 +40,7 @@ export const SELECTION_RING_OFFSET_PX = 8;
 
 // Star close-ups. Scales are camera.scale thresholds; the exit scale is
 // lower than the enter scale so close-ups don't flicker at the boundary.
-export const FOCUS_ENTER_SCALE = 50000;
+export const FOCUS_ENTER_SCALE = 10000;
 export const FOCUS_EXIT_SCALE = FOCUS_ENTER_SCALE - 5000;
 // Cap on simultaneous close-ups (largest on-screen stars win).
 export const FOCUS_MAX_STARS = 8;
