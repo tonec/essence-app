@@ -1,0 +1,66 @@
+{
+  "files": {
+    "api.md": {
+      "id": "3e8399fd-49a6-81d0-8c9a-c8ae6e1e887a",
+      "localHash": "21a252f57c788b993ffb6ab23da2f1af6514824a9e49022dabe3a7c274a89581",
+      "notionHash": "966769c1249c0169678858446605feb43601e7b1d59cbf014442a685395d376d"
+    },
+    "features/galaxy-map/design.md": {
+      "id": "3e8399fd-49a6-818b-98f5-f3a3d9d8a022",
+      "localHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notionHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "features/galaxy-map/requirements.md": {
+      "id": "3e8399fd-49a6-81e4-9579-fa2a0defc186",
+      "localHash": "586c6a38f3c0461ed18ea7e4765bf7eaf3f22a4e8c1cf4449445fd8e6f869cb2",
+      "notionHash": "095c3dc3cb3567db439e0e39c8f7c35debbedd02b09954fd4522c032e0c52283"
+    },
+    "features/galaxy-map/tasks.md": {
+      "id": "3e8399fd-49a6-81ac-9b40-e5b5106d2cdf",
+      "localHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "notionHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "features/pricing/pricing.md": {
+      "id": "3e8399fd-49a6-81b6-8e24-e300adfcf140",
+      "localHash": "5cd42cd1b2f314d2cf24af194c54b5a1cbebf17b0dbd4dfb8020348f48261982",
+      "notionHash": "7a3cdd229b09029910b1367c433dbff829df7b0c03eb3e13fd0c7a303406a660"
+    },
+    "features/star-inspect/requirements.md": {
+      "id": "3e8399fd-49a6-8164-871b-e431f5e317df",
+      "localHash": "27983615f3e00ef6cd034e437ada030b27de42cb764739579626d509277a4c4f",
+      "notionHash": "e0ba8fbb2c5a93e043c0781928958aad4cebc10f89e43fb514be91db06278da0"
+    },
+    "features/tile-builder/requirements.md": {
+      "id": "3e8399fd-49a6-81fc-8e01-f15c20ba467c",
+      "localHash": "d0f3870b904159a2e200affa474190f8bfe1e8f196b77b48db746221bfe04ac1",
+      "notionHash": "b2f44f007205952d3d80b029bd12448410fabd153c6753cebc5ed827f3502201"
+    },
+    "mission.md": {
+      "id": "3e8399fd-49a6-811e-9b35-f9d9f7f62bc3",
+      "localHash": "60b20ea22aedc215dddca19ed76df5ec521b2cd2d0d91835df02ba27ed559ada",
+      "notionHash": "680185af33a2a879d1b46c960c73f43b39bb8d8ba3d1dde2550106a2ecdc4cfb"
+    },
+    "roadmap.md": {
+      "id": "3e8399fd-49a6-8160-a6da-ccf8b08802e7",
+      "localHash": "5046110830e639d75531be20294b27fb7f27cee9a745c7c5d728ad193630f98f",
+      "notionHash": "797faf262e2a7d75293ef657b621e3b2c5520ccd6136257a42715ac61ae6d139"
+    },
+    "system-prompt.md": {
+      "id": "3e8399fd-49a6-813c-a6cd-e3173edd255a",
+      "localHash": "63bef2d2f3ed044a07ec4c9ef810c01222934036b076411dc2ca95434c648e4a",
+      "notionHash": "0cd1f7abdc4c4468a64e0e0c0d35b0d2d5919725f3902c376891c2a11bcd24c4"
+    },
+    "tech-stack.md": {
+      "id": "3e8399fd-49a6-81bf-b241-de1297bb0320",
+      "localHash": "2584e6e1ec63f729e728b88a8e334e018ac412aa2afb649e7f0ea7a61675bb58",
+      "notionHash": "a530bd1b712c7027bf68c1b21b1a8e7f1c6ad70e398e08fb09bddebddd53c923"
+    }
+  },
+  "dirs": {
+    "features": "3e8399fd-49a6-8140-b575-d18b6dce2004",
+    "features/galaxy-map": "3e8399fd-49a6-81ba-85f7-c03dabcb28f7",
+    "features/pricing": "3e8399fd-49a6-812b-9e33-ccf3b754a924",
+    "features/star-inspect": "3e8399fd-49a6-8190-a67d-df10d6b9c88f",
+    "features/tile-builder": "3e8399fd-49a6-818c-8243-d68f42d64a99"
+  }
+}

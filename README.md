@@ -20,6 +20,45 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Syncing specs with Notion
+
+`specs/` is kept in two-way sync with Notion pages under **Projects → Essence Specs**. Each folder maps to a page, and each `.md` file maps to a page whose body is the file's markdown.
+
+### One-time setup
+
+1. Create an internal integration at [notion.so/profile/integrations](https://www.notion.so/profile/integrations) with read, insert and update content capabilities, then copy its token.
+2. In Notion, open the Essence Specs page, go to ••• → Connections and add the integration.
+3. Add the token to `.env.local`:
+
+   ```bash
+   NOTION_TOKEN=...
+   # Optional: sync under a different parent page
+   # NOTION_SPECS_PARENT_ID=...
+   ```
+
+### Usage
+
+```bash
+npm run sync-notion                     # sync both ways
+npm run sync-notion -- --dry-run        # preview the changes without writing anything
+npm run sync-notion -- --prefer=local   # resolve conflicts using the repo version
+npm run sync-notion -- --prefer=notion  # resolve conflicts using the Notion version
+```
+
+Each run compares both sides against the last sync, which is recorded in `.notion-sync.json`. Commit that file so the sync works from any machine.
+
+- **Changed only in the repo:** pushed to Notion.
+- **Changed only in Notion:** pulled into `specs/`. Review the result with `git diff` before committing.
+- **Changed on both sides:** reported as a conflict and skipped. Re-run with `--prefer` to settle it. When there are conflicts, the command exits with a non-zero code.
+- **New on either side:** created on the other side. A new Notion page that has child pages becomes a folder.
+- **Deleted on either side:** reported but never propagated. The script never deletes anything.
+
+Notes:
+
+- Notion rewrites markdown in its own format, so pulled files can differ slightly in spacing, list markers and escaping.
+- Relative links between spec files stay as plain markdown links in Notion.
+- The `[Feature Name] Spec` template page is ignored. To ignore other pages, add them to `IGNORED_TITLES` in `scripts/sync-notion.mjs`.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

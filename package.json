@@ -10,7 +10,8 @@
     "format": "npx prettier . --write",
     "link": "supabase link --project-ref kngtsivkipcwgujsuppi",
     "push": "npm run link && supabase db push",
-    "build-catalog": "node scripts/build-catalog.mjs"
+    "build-catalog": "node scripts/build-catalog.mjs",
+    "sync-notion": "node --env-file-if-exists=.env.local scripts/sync-notion.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
